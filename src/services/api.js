@@ -1,10 +1,6 @@
 import { clearSession, getToken, getViewTenantId } from './session';
 
-const API_BASE_URL =
-  process.env.REACT_APP_API_URL ||
-  (process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3668'
-    : 'https://imsserver-production-8749.up.railway.app');
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3668';
 
 export const unwrapList = (data) => Array.isArray(data) ? data : (data?.data || []);
 
