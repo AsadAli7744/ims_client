@@ -257,7 +257,7 @@ const SaleEdit = () => {
               )}
 
               <div className="form-fields-row">
-                <FormField label="Amount" htmlFor={`amount-${index}`} required>
+                <FormField label="Selling Price" htmlFor={`amount-${index}`} required>
                   <Input
                     type="number"
                     name="amount"
@@ -285,7 +285,7 @@ const SaleEdit = () => {
 
         <div className="sale-totals">
           <div className="total-row">
-            <strong>Amount</strong> {formatAmount(totalAmount)}
+            <strong>Selling Price</strong> {formatAmount(totalAmount)}
           </div>
           <div className="total-row">
             <strong>Profit</strong> {formatAmount(totalProfit)}

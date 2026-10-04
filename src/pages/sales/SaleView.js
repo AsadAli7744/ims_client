@@ -70,7 +70,7 @@ const SaleView = () => {
     return (
       <div>
         <Navigation />
-        <div className="single-view-container">
+        <div className="sale-view-page">
           <p>Loading...</p>
         </div>
       </div>
@@ -81,7 +81,7 @@ const SaleView = () => {
     return (
       <div>
         <Navigation />
-        <div className="single-view-container">
+        <div className="sale-view-page">
           <p>Item not found</p>
           <button onClick={() => navigate('/sales')} className="single-view-button">
             Back to List
@@ -94,13 +94,31 @@ const SaleView = () => {
   const remaining = money(sale.balance);
   const canWrite = hasPermission('sales.write');
   const payments = Array.isArray(sale.payments) ? sale.payments : [];
+  const hasPlan = sale.installmentFrequency && sale.installmentFrequency !== 'none';
+  const customerName = sale.customer?.name || 'Walk-in';
+  const customerExtra = [sale.customer?.phone, sale.customer?.email].filter(Boolean).join(' · ');
+
+  const Stat = ({ label, children }) => (
+    <div className="sale-view-stat">
+      <span>{label}</span>
+      <strong>{children}</strong>
+    </div>
+  );
 
   return (
     <div>
       <Navigation />
-      <div className="single-view-container">
-        <div className="single-view-header">
-          <h1>Sale Details</h1>
+      <div className="sale-view-page">
+        <div className="sale-view-header">
+          <div>
+            <h1>Sale Details</h1>
+            <p className="sale-view-subtitle">
+              {sale.customer ? (
+                <PermissionLink module="customers" to={`/customers/${sale.customer.id}`}>{customerName}</PermissionLink>
+              ) : customerName}
+              {customerExtra ? ` · ${customerExtra}` : ''}
+            </p>
+          </div>
           <div className="single-view-actions">
             <button onClick={() => navigate('/sales')} className="single-view-button">
               Back
@@ -112,144 +130,93 @@ const SaleView = () => {
             )}
           </div>
         </div>
-        <div className="single-view-content">
-          <div className="single-view-field">
-            <label className="single-view-label">Customer:</label>
-            <div className="single-view-value">
-              {sale.customer
-                ? (
-                  <>
-                    <PermissionLink module="customers" to={`/customers/${sale.customer.id}`}>{sale.customer.name}</PermissionLink>
-                    {sale.customer.phone ? ` (${sale.customer.phone})` : ''}
-                    {sale.customer.email ? ` · ${sale.customer.email}` : ''}
-                  </>
-                )
-                : 'Walk-in'}
-            </div>
-          </div>
-          <div className="single-view-field">
-            <label className="single-view-label">Payment:</label>
-            <div className="single-view-value">
+
+        <div className="sale-view-card">
+          <div className="sale-view-grid">
+            <Stat label="Customer">
+              {sale.customer ? (
+                <PermissionLink module="customers" to={`/customers/${sale.customer.id}`}>{customerName}</PermissionLink>
+              ) : customerName}
+            </Stat>
+            <Stat label="Payment">
               <span className={`payment-badge payment-badge-${sale.paymentStatus || 'completed'}`}>
                 {paymentLabel(sale.paymentStatus)}
               </span>
-            </div>
-          </div>
-          <div className="single-view-field">
-            <label className="single-view-label">Total Amount:</label>
-            <div className="single-view-value">{moneyText(sale.totalAmount)}</div>
-          </div>
-          <div className="single-view-field">
-            <label className="single-view-label">Amount Paid:</label>
-            <div className="single-view-value">{moneyText(sale.amountPaid)}</div>
-          </div>
-          <div className="single-view-field">
-            <label className="single-view-label">Balance:</label>
-            <div className="single-view-value">{moneyText(remaining)}</div>
-          </div>
-          <div className="single-view-field">
-            <label className="single-view-label">Total Profit:</label>
-            <div className="single-view-value">{moneyText(sale.totalProfit)}</div>
-          </div>
-          {sale.promiseDate && (
-            <div className="single-view-field">
-              <label className="single-view-label">Promise Date:</label>
-              <div className="single-view-value">{sale.promiseDate}</div>
-            </div>
-          )}
-          {sale.installmentFrequency && sale.installmentFrequency !== 'none' && (
-            <>
-              <div className="single-view-field">
-                <label className="single-view-label">Installment:</label>
-                <div className="single-view-value">
-                  {FREQUENCY_LABELS[sale.installmentFrequency] || sale.installmentFrequency}
-                  {sale.installmentAmount != null ? ` · ${moneyText(sale.installmentAmount)}` : ''}
-                </div>
-              </div>
-              <div className="single-view-field">
-                <label className="single-view-label">Next Due:</label>
-                <div className="single-view-value">{sale.nextDueDate || '—'}</div>
-              </div>
-            </>
-          )}
-          {!sale.installmentFrequency || sale.installmentFrequency === 'none' ? (
-            sale.nextDueDate ? (
-              <div className="single-view-field">
-                <label className="single-view-label">Due Date:</label>
-                <div className="single-view-value">{sale.nextDueDate}</div>
-              </div>
-            ) : null
-          ) : null}
-          <div className="single-view-field">
-            <label className="single-view-label">Date:</label>
-            <div className="single-view-value">
+            </Stat>
+            <Stat label="Total">{moneyText(sale.totalAmount)}</Stat>
+            <Stat label="Paid">{moneyText(sale.amountPaid)}</Stat>
+            <Stat label="Balance">{moneyText(remaining)}</Stat>
+            <Stat label="Profit">{moneyText(sale.totalProfit)}</Stat>
+            {sale.promiseDate && <Stat label="Promise date">{sale.promiseDate}</Stat>}
+            {hasPlan && (
+              <Stat label="Installment">
+                {FREQUENCY_LABELS[sale.installmentFrequency] || sale.installmentFrequency}
+                {sale.installmentAmount != null ? ` · ${moneyText(sale.installmentAmount)}` : ''}
+              </Stat>
+            )}
+            {sale.nextDueDate && (
+              <Stat label={hasPlan ? 'Next due' : 'Due date'}>{sale.nextDueDate}</Stat>
+            )}
+            <Stat label="Date">
               {sale.createdAt
                 ? `${new Date(sale.createdAt).toLocaleDateString()} ${new Date(sale.createdAt).toLocaleTimeString()}`
                 : 'N/A'}
-            </div>
+            </Stat>
           </div>
-          <div className="single-view-field">
-            <label className="single-view-label">Items:</label>
-            <div className="single-view-value">
-              {!sale.saleItems || sale.saleItems.length === 0 ? (
-                'No items'
-              ) : (
-                <div className="sale-items-display">
-                  <table className="sale-items-table">
-                    <thead>
-                      <tr>
-                        <th>Item</th>
-                        <th>Quantity</th>
-                        <th>Amount</th>
-                        <th>Profit</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sale.saleItems.map((saleItem, index) => (
-                        <tr key={index}>
-                          <td>
-                            {itemOptionLabel(saleItem.item)}
-                          </td>
-                          <td>{saleItem.quantity || 0}</td>
-                          <td>{moneyText(saleItem.amount)}</td>
-                          <td>{moneyText(saleItem.profit)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="single-view-field">
-            <label className="single-view-label">Payment history:</label>
-            <div className="single-view-value">
-              {payments.length === 0 ? (
-                'No recorded payments'
-              ) : (
-                <div className="sale-items-display">
-                  <table className="sale-items-table">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Amount</th>
-                        <th>Notes</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {payments.map((entry) => (
-                        <tr key={entry.id}>
-                          <td>{entry.paidOn || '—'}</td>
-                          <td>{moneyText(entry.amount)}</td>
-                          <td>{entry.notes || '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
+        </div>
+
+        <div className="sale-view-card">
+          <h3>Items</h3>
+          {!sale.saleItems || sale.saleItems.length === 0 ? (
+            <p className="sale-view-empty">No items</p>
+          ) : (
+            <table className="sale-items-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Qty</th>
+                  <th>Amount</th>
+                  <th>Profit</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sale.saleItems.map((saleItem, index) => (
+                  <tr key={index}>
+                    <td>{itemOptionLabel(saleItem.item)}</td>
+                    <td>{saleItem.quantity || 0}</td>
+                    <td>{moneyText(saleItem.amount)}</td>
+                    <td>{moneyText(saleItem.profit)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <div className="sale-view-card">
+          <h3>Payments</h3>
+          {payments.length === 0 ? (
+            <p className="sale-view-empty">No recorded payments</p>
+          ) : (
+            <table className="sale-items-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payments.map((entry) => (
+                  <tr key={entry.id}>
+                    <td>{entry.paidOn || '—'}</td>
+                    <td>{moneyText(entry.amount)}</td>
+                    <td>{entry.notes || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {canWrite && remaining > 0.001 && (

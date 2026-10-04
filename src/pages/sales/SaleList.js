@@ -21,7 +21,7 @@ const SaleList = () => {
       }
     },
     {
-      header: 'Total Amount',
+      header: 'Selling Price',
       accessor: 'totalAmount',
       render: (value) => moneyText(value)
     },
@@ -66,7 +66,7 @@ const SaleList = () => {
   ];
 
   const totalsConfig = [
-    { key: 'totalAmount', label: 'Total Sales Amount', format: 'currency' },
+    { key: 'totalAmount', label: 'Total Selling Price', format: 'currency' },
     { key: 'totalProfit', label: 'Total Profit', format: 'currency' },
     { key: 'outstanding', label: 'Outstanding', format: 'currency' },
   ];

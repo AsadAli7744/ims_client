@@ -30,17 +30,6 @@ const ItemList = () => {
         : 'No categories'
     },
     { 
-      header: 'Store', 
-      accessor: 'store',
-      render: (value) => value?.name || 'N/A'
-    },
-    { 
-      header: 'Shop', 
-      accessor: 'shop',
-      render: (value) => value?.name || 'N/A'
-    },
-    { header: 'Location', accessor: 'location' },
-    { 
       header: 'Quantity', 
       accessor: 'quantity',
       render: (value) => value ?? 0
@@ -49,17 +38,6 @@ const ItemList = () => {
       header: 'FIFO Cost (next out)', 
       accessor: 'purchasePrice',
       render: (value) => formatAmount(value)
-    },
-    { 
-      header: 'Total Value', 
-      accessor: 'totalValue',
-      render: (value, row) => {
-        const qty = row.quantity ?? 0;
-        const price = typeof row.purchasePrice === 'string' 
-          ? parseFloat(row.purchasePrice) 
-          : (row.purchasePrice || 0);
-        return formatAmount(qty * price);
-      }
     },
     { 
       header: 'Min Sale Price', 
