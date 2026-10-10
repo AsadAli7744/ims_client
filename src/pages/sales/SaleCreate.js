@@ -210,14 +210,14 @@ const SaleCreate = () => {
                 </FormField>
               </div>
 
-              {saleItem.selectedItem && (
+              {/* {saleItem.selectedItem && (
                 <div className="item-info-box">
                   <span className="item-info-stat"><strong>Item</strong> {itemOptionLabel(saleItem.selectedItem)}</span>
                   <span className="item-info-stat"><strong>Available</strong> {saleItem.selectedItem.quantity}</span>
                   <span className="item-info-stat"><strong>FIFO cost</strong> {formatAmount(saleItem.selectedItem.purchasePrice)}</span>
                   <span className="item-info-hint">Profit is estimated from FIFO cost and finalized on save.</span>
                 </div>
-              )}
+              )} */}
 
               <div className="form-fields-row">
                 <FormField label="Selling Price" htmlFor={`amount-${index}`} required>

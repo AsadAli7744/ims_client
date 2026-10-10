@@ -248,13 +248,13 @@ const SaleEdit = () => {
                 </FormField>
               </div>
 
-              {saleItem.selectedItem && (
+              {/* {saleItem.selectedItem && (
                 <div className="item-info-box">
                   <span className="item-info-stat"><strong>Item</strong> {itemOptionLabel(saleItem.selectedItem)}</span>
                   <span className="item-info-stat"><strong>Available</strong> {saleItem.selectedItem.quantity}</span>
                   <span className="item-info-stat"><strong>Purchase price</strong> {formatAmount(saleItem.selectedItem.purchasePrice)}</span>
                 </div>
-              )}
+              )} */}
 
               <div className="form-fields-row">
                 <FormField label="Selling Price" htmlFor={`amount-${index}`} required>
