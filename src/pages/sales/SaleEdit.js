@@ -131,7 +131,7 @@ const SaleEdit = () => {
   };
 
   const totalAmount = saleItems.reduce((sum, item) => sum + (item.amount || 0), 0);
-  const totalProfit = saleItems.reduce((sum, item) => sum + (item.profit || 0), 0);
+  // const totalProfit = saleItems.reduce((sum, item) => sum + (item.profit || 0), 0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -283,14 +283,14 @@ const SaleEdit = () => {
           ))}
         </div>
 
-        <div className="sale-totals">
+        {/* <div className="sale-totals">
           <div className="total-row">
             <strong>Selling Price</strong> {formatAmount(totalAmount)}
           </div>
           <div className="total-row">
             <strong>Profit</strong> {formatAmount(totalProfit)}
           </div>
-        </div>
+        </div> */}
 
         <SalePaymentFields
           totalAmount={totalAmount}

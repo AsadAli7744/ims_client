@@ -11,6 +11,10 @@ const isActivePath = (pathname, path) => {
   if (path === '/home') {
     return pathname === '/home';
   }
+  // Sale installments listing must not stay active on plan routes under /installments/plans
+  if (path === '/installments') {
+    return pathname === '/installments';
+  }
   return pathname === path || pathname.startsWith(`${path}/`);
 };
 
@@ -28,6 +32,7 @@ const NavIcon = ({ name }) => {
     users: 'M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm-8 9v-1.2A6.8 6.8 0 0 1 12 13a6.8 6.8 0 0 1 8 6.8V21z',
     permissions: 'M12 2 4 5v6c0 5.2 3.4 10 8 11.2C16.6 21 20 16.2 20 11V5l-8-3z',
     sales: 'M4 18V8h4v10zm6 0V4h4v14zm6 0v-7h4v7z',
+    promises: 'M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V10h14zm0-12H5V6h14zm-7 5 1.4 1.4L16.2 11l1.4 1.4-3.2 3.2L11 12.2z',
     services: 'M21 7.5 12 2 3 7.5V21h7v-6h4v6h7z',
     installments: 'M7 3h10v3H7zm-3 5h16v13H4zm4 3h8v2H8z',
     customers: 'M8 11a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 8 11zm8 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3zM2 20v-1.4A5.4 5.4 0 0 1 8 13a5.3 5.3 0 0 1 4.6 2.6A4.7 4.7 0 0 1 16 13a4.8 4.8 0 0 1 6 5.6V20z',
@@ -35,6 +40,7 @@ const NavIcon = ({ name }) => {
     items: 'M4 7 12 3l8 4-8 4-8-4zm0 5 8 4 8-4M4 17l8 4 8-4',
     transfers: 'M7 7h11l-3-3 1.4-1.4L21.8 8 16.4 13.4 15 12l3-3H7zm10 10H6l3 3-1.4 1.4L2.2 16 7.6 10.6 9 12l-3 3h11z',
     categories: 'M4 4h7v7H4zm9 0h7v7h-7zM4 13h7v7H4zm9 0h7v7h-7z',
+    itemTypes: 'M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 2h2v2h-2zm4-2h2v6h-2zm-4 4h2v2h-2z',
     companies: 'M4 21V7l6-4 4 2.7V7h6v14H4zm4-3h2v-3H8zm5 0h2v-3h-2zm5 0h2v-3h-2z',
     purchases: 'M7 18a2 2 0 1 0 2 2 2 2 0 0 0-2-2zm10 0a2 2 0 1 0 2 2 2 2 0 0 0-2-2zM3 4h2l.4 2H21l-2.2 8H8.1L7 7.3 6.3 6H3zm5.3 8h9.2l1.2-4H7.6z',
     expenses: 'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-2h2zm0-4h-2V7h2z',
@@ -99,6 +105,7 @@ const Navigation = () => {
     if (hasPermission('users', user) && (isSuperAdmin(user) || isTenantAdmin(user))) {
       if (isSuperAdmin(user)) {
         adminItems.push({ path: '/admin/users', label: 'Users', icon: 'users' });
+        adminItems.push({ path: '/item-types', label: 'Item Types', icon: 'itemTypes' });
       }
       adminItems.push({ path: '/permissions', label: 'Permissions', icon: 'permissions' });
     }
@@ -109,8 +116,10 @@ const Navigation = () => {
         title: 'Business',
         items: [
           { path: '/sales', label: 'Sales', module: 'sales', icon: 'sales' },
+          { path: '/promises', label: 'Promises', module: 'sales', icon: 'promises' },
+          { path: '/installments', label: 'Installments', module: 'sales', icon: 'installments' },
+          { path: '/installment-plans', label: 'Installment Plans', module: 'installments', icon: 'installments' },
           { path: '/services', label: 'Services', module: 'services', icon: 'services' },
-          { path: '/installments', label: 'Installments', module: 'installments', icon: 'installments' },
           { path: '/customers', label: 'Customers', module: 'customers', icon: 'customers' },
           { path: '/sellers', label: 'Sellers', module: 'sellers', icon: 'sellers' },
         ],

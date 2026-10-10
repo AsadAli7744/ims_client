@@ -150,8 +150,10 @@ const SaleView = () => {
             {sale.promiseDate && <Stat label="Promise date">{sale.promiseDate}</Stat>}
             {hasPlan && (
               <Stat label="Installment">
-                {FREQUENCY_LABELS[sale.installmentFrequency] || sale.installmentFrequency}
-                {sale.installmentAmount != null ? ` · ${moneyText(sale.installmentAmount)}` : ''}
+                {sale.installmentMonths
+                  ? `${sale.installmentMonths} month${Number(sale.installmentMonths) === 1 ? '' : 's'}`
+                  : (FREQUENCY_LABELS[sale.installmentFrequency] || sale.installmentFrequency)}
+                {sale.installmentAmount != null ? ` · ${moneyText(sale.installmentAmount)}/mo` : ''}
               </Stat>
             )}
             {sale.nextDueDate && (

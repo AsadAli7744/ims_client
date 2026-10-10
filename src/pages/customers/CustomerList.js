@@ -8,7 +8,7 @@ const CustomerList = () => {
     { header: 'Phone', accessor: 'phone', render: (value) => value || '—' },
     { header: 'Email', accessor: 'email', render: (value) => value || '—' },
     { header: 'Address', accessor: 'address', render: (value) => value || '—' },
-    { header: 'CNIC', accessor: 'cnic', render: (value) => value || '—' },
+    { header: 'CNIC / ID', accessor: 'cnic', render: (value) => value || '—' },
     {
       header: 'Shop',
       accessor: 'shop',

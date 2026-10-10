@@ -4,7 +4,13 @@ import Input from '../../components/Input';
 import { CustomerSearchSelect } from '../../components/entitySearchSelects';
 import CollapseBody from '../../components/CollapseBody';
 import InlineCreatePanel from '../../components/InlineCreatePanel';
-import { FREQUENCY_LABELS, money, moneyText, resolvePaidAmount } from './salePayment';
+import {
+  CREDIT_PLAN_LABELS,
+  calcMonthlyInstallment,
+  money,
+  moneyText,
+  resolvePaidAmount,
+} from './salePayment';
 
 const SalePaymentFields = ({
   totalAmount,
@@ -18,6 +24,25 @@ const SalePaymentFields = ({
   const remaining = Math.max(0, money(totalAmount) - paid);
   const isCredit = remaining > 0.001;
   const hasPlan = value.installmentFrequency && value.installmentFrequency !== 'none';
+  const months = Number(value.installmentMonths) || 0;
+  const monthlyAmount = hasPlan ? calcMonthlyInstallment(remaining, months) : 0;
+
+  const setPlanMode = (mode) => {
+    if (mode === 'monthly') {
+      onChange({
+        ...value,
+        installmentFrequency: 'monthly',
+        installmentMonths: value.installmentMonths || '6',
+      });
+      return;
+    }
+    onChange({
+      ...value,
+      installmentFrequency: 'none',
+      installmentMonths: '',
+      installmentAmount: '',
+    });
+  };
 
   return (
     <div className={`sale-payment-section${open ? ' is-open' : ' is-collapsed'}`}>
@@ -33,7 +58,7 @@ const SalePaymentFields = ({
       <CollapseBody open={open} className="sale-payment-body">
       <p className="sale-payment-hint">
         Leave customer empty for a cash walk-in. Amount paid defaults to the sale total.
-        Use a lower amount only when the customer is borrowing or paying later.
+        For a pending balance, use a promise date or split it into monthly installments.
       </p>
 
       <div className="form-fields-row">
@@ -71,6 +96,17 @@ const SalePaymentFields = ({
               />
             </FormField>
           </div>
+          <div className="form-fields-row">
+            <FormField label="CNIC / ID" htmlFor="newCustomerCnic">
+              <Input
+                type="text"
+                name="newCustomerCnic"
+                placeholder="Optional CNIC / ID"
+                value={value.newCustomerCnic}
+                onChange={(e) => update('newCustomerCnic', e.target.value)}
+              />
+            </FormField>
+          </div>
         </InlineCreatePanel>
       )}
 
@@ -99,7 +135,23 @@ const SalePaymentFields = ({
       {isCredit && (
         <>
           <div className="form-fields-row">
-            <FormField label="Promise / first due date" htmlFor="promiseDate" required={!hasPlan}>
+            <FormField label="Credit plan" htmlFor="creditPlan">
+              <Input
+                type="dropdown"
+                name="creditPlan"
+                value={hasPlan ? 'monthly' : 'none'}
+                onChange={(e) => setPlanMode(e.target.value || 'none')}
+                options={Object.entries(CREDIT_PLAN_LABELS).map(([mode, label]) => ({
+                  value: mode,
+                  label,
+                }))}
+              />
+            </FormField>
+            <FormField
+              label={hasPlan ? 'Installment date' : 'Promise date'}
+              htmlFor="promiseDate"
+              required
+            >
               <Input
                 type="date"
                 name="promiseDate"
@@ -107,33 +159,36 @@ const SalePaymentFields = ({
                 onChange={(e) => update('promiseDate', e.target.value)}
               />
             </FormField>
-            <FormField label="Installment plan" htmlFor="installmentFrequency">
-              <Input
-                type="dropdown"
-                name="installmentFrequency"
-                value={value.installmentFrequency}
-                onChange={(e) => update('installmentFrequency', e.target.value || 'none')}
-                options={Object.entries(FREQUENCY_LABELS).map(([freq, label]) => ({
-                  value: freq,
-                  label,
-                }))}
-              />
-            </FormField>
           </div>
+
           {hasPlan && (
             <div className="form-fields-row">
-              <FormField label="Installment amount" htmlFor="installmentAmount" required>
+              <FormField label="Months" htmlFor="installmentMonths" required>
                 <Input
                   type="number"
+                  name="installmentMonths"
+                  placeholder="e.g. 6"
+                  value={value.installmentMonths}
+                  onChange={(e) => update('installmentMonths', e.target.value)}
+                  min="1"
+                  step="1"
+                />
+              </FormField>
+              <FormField label="Amount each month" htmlFor="installmentAmount">
+                <Input
+                  type="text"
                   name="installmentAmount"
-                  placeholder="Amount due each period"
-                  value={value.installmentAmount}
-                  onChange={(e) => update('installmentAmount', e.target.value)}
-                  min="0.01"
-                  step="any"
+                  value={months > 0 ? moneyText(monthlyAmount) : '—'}
+                  disabled
                 />
               </FormField>
             </div>
+          )}
+          {hasPlan && months > 0 && (
+            <p className="sale-payment-hint">
+              Pending {moneyText(remaining)} over {months} month{months === 1 ? '' : 's'}
+              {' '}→ {moneyText(monthlyAmount)} each month, starting {value.promiseDate || 'the installment date'}.
+            </p>
           )}
         </>
       )}

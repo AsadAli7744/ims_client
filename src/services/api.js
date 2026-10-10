@@ -26,6 +26,9 @@ const apiCall = async (endpoint, options = {}) => {
     if (options.filters.tenantId) params.append('tenantId', options.filters.tenantId);
     if (options.filters.paymentStatus) params.append('paymentStatus', options.filters.paymentStatus);
     if (options.filters.dueToday) params.append('dueToday', options.filters.dueToday);
+    if (options.filters.promisesOnly) params.append('promisesOnly', options.filters.promisesOnly);
+    if (options.filters.promiseStatus) params.append('promiseStatus', options.filters.promiseStatus);
+    if (options.filters.installmentsOnly) params.append('installmentsOnly', options.filters.installmentsOnly);
     if (options.filters.customerId) params.append('customerId', options.filters.customerId);
     if (options.filters.sellerId) params.append('sellerId', options.filters.sellerId);
     if (options.filters.kind) params.append('kind', options.filters.kind);
@@ -33,6 +36,7 @@ const apiCall = async (endpoint, options = {}) => {
     if (options.filters.condition && options.filters.condition.trim()) params.append('condition', options.filters.condition.trim());
     if (options.filters.companyId) params.append('companyId', options.filters.companyId);
     if (options.filters.categoryId) params.append('categoryId', options.filters.categoryId);
+    if (options.filters.itemTypeId) params.append('itemTypeId', options.filters.itemTypeId);
   }
   
   if (options.storeId) params.append('storeId', options.storeId);
@@ -161,6 +165,21 @@ export const categoriesApi = {
   delete: (id) => apiCall(`/category/${id}`, { method: 'DELETE' }),
 };
 
+export const itemTypesApi = {
+  getAll: (page, limit, filters) => {
+    const options = { page, limit, filters };
+    const shopId = resolveShopId(filters);
+    if (shopId) {
+      options.shopId = shopId;
+    }
+    return apiCall('/item-types', options);
+  },
+  getOne: (id) => apiCall(`/item-types/${id}`),
+  create: (data) => apiCall('/item-types', { method: 'POST', body: data }),
+  update: (id, data) => apiCall(`/item-types/${id}`, { method: 'PATCH', body: data }),
+  delete: (id) => apiCall(`/item-types/${id}`, { method: 'DELETE' }),
+};
+
 export const companiesApi = {
   getAll: (page, limit, filters) => apiCall('/companies', { page, limit, filters }),
   getOne: (id) => apiCall(`/companies/${id}`),
@@ -209,6 +228,11 @@ export const salesApi = {
     const options = { filters };
     options.shopId = shopId ?? resolveShopId(filters);
     return apiCall('/sales/totals', options);
+  },
+  getTotalsByType: (filters, shopId) => {
+    const options = { filters };
+    options.shopId = shopId ?? resolveShopId(filters);
+    return apiCall('/sales/totals-by-type', options);
   },
   create: (data) => {
     const shopId = getSelectedShopId();

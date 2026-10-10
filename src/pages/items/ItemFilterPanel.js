@@ -20,6 +20,7 @@ const ItemFilterPanel = ({
     condition: currentFilters.condition || '',
     companyId: currentFilters.companyId || '',
     categoryId: currentFilters.categoryId || '',
+    itemTypeId: currentFilters.itemTypeId || '',
   });
 
   const showTypeFilter = showStoreOption || showShopOption;
@@ -34,8 +35,9 @@ const ItemFilterPanel = ({
       condition: currentFilters.condition || '',
       companyId: currentFilters.companyId || '',
       categoryId: currentFilters.categoryId || '',
+      itemTypeId: currentFilters.itemTypeId || '',
     });
-  }, [currentFilters.filterType, currentFilters.search, currentFilters.date, currentFilters.dateFrom, currentFilters.dateTo, currentFilters.condition, currentFilters.companyId, currentFilters.categoryId]);
+  }, [currentFilters.filterType, currentFilters.search, currentFilters.date, currentFilters.dateFrom, currentFilters.dateTo, currentFilters.condition, currentFilters.companyId, currentFilters.categoryId, currentFilters.itemTypeId]);
 
   useEffect(() => {
     if (filters.filterType === 'store' && !showStoreOption) {
@@ -78,6 +80,7 @@ const ItemFilterPanel = ({
       condition: '',
       companyId: '',
       categoryId: '',
+      itemTypeId: '',
     };
     setFilters(clearedFilters);
     onClear();

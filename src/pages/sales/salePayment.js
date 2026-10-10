@@ -26,6 +26,11 @@ export const FREQUENCY_LABELS = {
   monthly: 'Monthly',
 };
 
+export const CREDIT_PLAN_LABELS = {
+  none: 'Promise date only',
+  monthly: 'Monthly installments',
+};
+
 export function money(value) {
   const parsed = Number(value || 0);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -47,16 +52,27 @@ export function paymentLabel(status) {
   return PAYMENT_LABELS[status] || status || 'Completed';
 }
 
+export function calcMonthlyInstallment(remaining, months) {
+  const balance = money(remaining);
+  const count = Number(months);
+  if (balance <= 0 || !count || count < 1) {
+    return 0;
+  }
+  return money(balance / count);
+}
+
 export function emptyPaymentForm() {
   return {
     customerId: '',
     customerLabel: '',
     newCustomerName: '',
     newCustomerPhone: '',
+    newCustomerCnic: '',
     amountPaid: '',
     promiseDate: '',
     installmentFrequency: 'none',
     installmentAmount: '',
+    installmentMonths: '',
   };
 }
 
@@ -74,10 +90,12 @@ export function paymentFormFromSale(sale) {
     customerLabel: customerDisplayLabel(sale?.customer),
     newCustomerName: '',
     newCustomerPhone: '',
+    newCustomerCnic: '',
     amountPaid: sale?.amountPaid == null ? '' : formatAmount(sale.amountPaid, ''),
     promiseDate: sale?.promiseDate || '',
     installmentFrequency: sale?.installmentFrequency || 'none',
     installmentAmount: sale?.installmentAmount == null ? '' : formatAmount(sale.installmentAmount, ''),
+    installmentMonths: sale?.installmentMonths == null ? '' : String(sale.installmentMonths),
   };
 }
 
@@ -100,16 +118,19 @@ export function validatePaymentForm(form, totalAmount) {
   const remaining = Math.max(0, total - paid);
   if (remaining > 0.001) {
     const hasPlan = form.installmentFrequency && form.installmentFrequency !== 'none';
-    if (!hasPlan && !form.promiseDate) {
-      return 'Promise date is required when payment is pending or partial';
+    if (!form.promiseDate) {
+      return hasPlan
+        ? 'Installment date is required'
+        : 'Promise date is required when payment is pending or partial';
     }
     if (hasPlan) {
-      const installment = money(form.installmentAmount);
-      if (installment <= 0) {
-        return 'Installment amount is required for daily, weekly, or monthly plans';
+      const months = Number(form.installmentMonths);
+      if (!months || months < 1) {
+        return 'Enter how many months for the pending amount';
       }
-      if (installment > remaining + 0.001) {
-        return 'Installment amount cannot exceed remaining balance';
+      const installment = calcMonthlyInstallment(remaining, months);
+      if (installment <= 0) {
+        return 'Installment amount must be greater than 0';
       }
     }
   }
@@ -124,6 +145,7 @@ export function buildSalePaymentPayload(form, totalAmount, { allowClearCustomer 
     payload.newCustomer = {
       name: form.newCustomerName.trim(),
       phone: form.newCustomerPhone?.trim() || undefined,
+      cnic: form.newCustomerCnic?.trim() || undefined,
     };
   } else if (allowClearCustomer) {
     payload.customerId = null;
@@ -136,12 +158,20 @@ export function buildSalePaymentPayload(form, totalAmount, { allowClearCustomer 
     if (form.promiseDate) {
       payload.promiseDate = form.promiseDate;
     }
-    payload.installmentFrequency = form.installmentFrequency || 'none';
-    if (payload.installmentFrequency !== 'none' && form.installmentAmount) {
-      payload.installmentAmount = money(form.installmentAmount);
+    const hasPlan = form.installmentFrequency && form.installmentFrequency !== 'none';
+    if (hasPlan) {
+      const months = Number(form.installmentMonths);
+      const remaining = Math.max(0, total - paid);
+      payload.installmentFrequency = 'monthly';
+      payload.installmentMonths = months;
+      payload.installmentAmount = calcMonthlyInstallment(remaining, months);
+    } else {
+      payload.installmentFrequency = 'none';
+      payload.installmentMonths = null;
     }
   } else {
     payload.installmentFrequency = 'none';
+    payload.installmentMonths = null;
   }
   return payload;
 }

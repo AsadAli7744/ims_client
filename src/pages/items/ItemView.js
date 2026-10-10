@@ -22,6 +22,11 @@ const ItemView = () => {
         ? value.map(c => c.name || c).join(', ')
         : 'No categories'
     },
+    {
+      label: 'Item type',
+      accessor: 'itemType',
+      render: (value) => value?.name || '—',
+    },
     { 
       label: 'Store', 
       accessor: 'store',

@@ -118,11 +118,11 @@ const CustomerEdit = () => {
           </FormField>
         </div>
         <div className="form-fields-row">
-          <FormField label="CNIC" htmlFor="cnic">
+          <FormField label="CNIC / ID" htmlFor="cnic">
             <Input
               type="text"
               name="cnic"
-              placeholder="Optional CNIC"
+              placeholder="Optional CNIC / ID"
               value={formData.cnic}
               onChange={handleChange}
               maxLength={20}

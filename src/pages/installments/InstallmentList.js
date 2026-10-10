@@ -56,12 +56,12 @@ const InstallmentList = () => {
 
   return (
     <Listing
-      title="Installments"
+      title="Installment Plans"
       columns={columns}
       fetchData={installmentsApi.getAll}
-      basePath="/installments/plans"
+      basePath="/installment-plans"
       createPath="/installments/plans/create"
-      getViewPath={(row) => (row.plan?.id ? `/installments/plans/${row.plan.id}` : '/installments')}
+      getViewPath={(row) => (row.plan?.id ? `/installments/plans/${row.plan.id}` : '/installment-plans')}
       hideEdit
       writePermission="installments.write"
       fetchTotals={installmentsApi.getTotals}

@@ -26,6 +26,7 @@ const InstallmentPlanCreate = () => {
     customerId: '',
     newCustomerName: '',
     newCustomerPhone: '',
+    newCustomerCnic: '',
   });
 
   const handleChange = (e) => {
@@ -85,6 +86,7 @@ const InstallmentPlanCreate = () => {
         payload.newCustomer = {
           name: formData.newCustomerName.trim(),
           phone: formData.newCustomerPhone.trim() || undefined,
+          cnic: formData.newCustomerCnic.trim() || undefined,
         };
       }
       const created = await installmentsApi.createPlan(payload);
@@ -155,6 +157,17 @@ const InstallmentPlanCreate = () => {
                     name="newCustomerPhone"
                     placeholder="Optional phone"
                     value={formData.newCustomerPhone}
+                    onChange={handleChange}
+                  />
+                </FormField>
+              </div>
+              <div className="form-fields-row">
+                <FormField label="CNIC / ID" htmlFor="newCustomerCnic">
+                  <Input
+                    type="text"
+                    name="newCustomerCnic"
+                    placeholder="Optional CNIC / ID"
+                    value={formData.newCustomerCnic}
                     onChange={handleChange}
                   />
                 </FormField>

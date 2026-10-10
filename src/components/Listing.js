@@ -21,6 +21,7 @@ const Listing = ({
   getViewPath,
   getEditPath,
   hideEdit = false,
+  hideCreate = false,
   onDelete,
   showFilters = true,
   renderFilters,
@@ -197,7 +198,7 @@ const Listing = ({
             <button type="button" onClick={handleRefresh} className="listing-refresh-button" disabled={loading}>
               {loading ? 'Refreshing...' : 'Refresh'}
             </button>
-            {(!writePermission || hasPermission(writePermission)) && (
+            {!hideCreate && (!writePermission || hasPermission(writePermission)) && (
               <button type="button" onClick={handleCreate} className="listing-create-button">
                 Create New
               </button>

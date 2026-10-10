@@ -6,6 +6,7 @@ import { formatAmount } from '../utils/formatAmount';
 import './installments/Installments.css';
 import { useShop } from '../contexts/ShopContext';
 import CollapsibleFilters from '../components/CollapsibleFilters';
+import ItemTypeFilterField from '../components/ItemTypeFilterField';
 import '../components/FilterPanel.css';
 import './Home.css';
 
@@ -13,6 +14,7 @@ const emptyFilters = {
   date: '',
   dateFrom: '',
   dateTo: '',
+  itemTypeId: '',
 };
 
 const money = (value) => formatAmount(value);
@@ -35,6 +37,7 @@ const Home = () => {
     installmentsDueSoon: 0,
     installmentsWeek: 0,
   });
+  const [salesByType, setSalesByType] = useState([]);
 
   const loadStockValue = useCallback(async () => {
     if (selectedShop?.id) {
@@ -74,6 +77,9 @@ const Home = () => {
     if (selectedShop?.id) {
       query.shopId = selectedShop.id;
     }
+    if (filters.itemTypeId) {
+      query.itemTypeId = filters.itemTypeId;
+    }
     try {
       const canSales = hasPermission('sales');
       const canServices = hasPermission('services');
@@ -81,13 +87,14 @@ const Home = () => {
       const canPurchases = hasPermission('purchases');
       const canExpenses = hasPermission('expenses');
       const canStock = hasPermission('items') || hasPermission('shops');
-      const [salesTotals, serviceTotals, installmentTotals, purchaseTotals, expenseTotals, stockValue] = await Promise.all([
+      const [salesTotals, serviceTotals, installmentTotals, purchaseTotals, expenseTotals, stockValue, byType] = await Promise.all([
         canSales ? salesApi.getTotals(query, selectedShop?.id) : Promise.resolve({}),
         canServices ? servicesApi.getTotals(query, selectedShop?.id) : Promise.resolve({}),
         canInstallments ? installmentsApi.getTotals(query, selectedShop?.id) : Promise.resolve({}),
         canPurchases ? purchasesApi.getTotals(query) : Promise.resolve({}),
         canExpenses ? expensesApi.getTotals(query) : Promise.resolve({}),
         canStock ? loadStockValue() : Promise.resolve(0),
+        canSales ? salesApi.getTotalsByType(query, selectedShop?.id) : Promise.resolve([]),
       ]);
       const hasDate = !!(filters.date || filters.dateFrom || filters.dateTo);
       const installmentProfit = canInstallments
@@ -114,12 +121,14 @@ const Home = () => {
         installmentsDueSoon: Number(installmentTotals?.dueSoon || 0),
         installmentsWeek: Number(installmentTotals?.completedThisWeek || 0),
       });
+      setSalesByType(Array.isArray(byType) ? byType : []);
     } catch (err) {
       setError(err.message || 'Failed to load dashboard');
+      setSalesByType([]);
     } finally {
       setLoading(false);
     }
-  }, [filters.date, filters.dateFrom, filters.dateTo, loadStockValue, selectedShop?.id]);
+  }, [filters.date, filters.dateFrom, filters.dateTo, filters.itemTypeId, loadStockValue, selectedShop?.id]);
 
   useEffect(() => {
     loadStats();
@@ -190,10 +199,10 @@ const Home = () => {
           )}
         </div>
 
-        <CollapsibleFilters title="Date filter">
+        <CollapsibleFilters title="Filters">
           <div className="filter-panel">
             <div className="filter-panel-header">
-              <h3>Date filter</h3>
+              <h3>Filters</h3>
               <button type="button" onClick={handleClear} className="filter-clear-button">Clear</button>
             </div>
             <div className="filter-panel-body">
@@ -231,6 +240,7 @@ const Home = () => {
                     className="filter-input"
                   />
                 </div>
+                <ItemTypeFilterField filters={filters} onChange={handleFilterChange} />
               </div>
             </div>
           </div>
@@ -269,6 +279,23 @@ const Home = () => {
                   <div className="dashboard-card-label">{card.label}</div>
                   <div className="dashboard-card-value">{loading ? '...' : money(card.value)}</div>
                   <div className="dashboard-card-hint">{card.hint}</div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {canSales && salesByType.length > 0 && (
+          <>
+            <h2 className="dashboard-section-title">Sales by item type</h2>
+            <div className="dashboard-cards">
+              {salesByType.map((row) => (
+                <div key={row.itemTypeId ?? 'none'} className="dashboard-card dashboard-card-sales">
+                  <div className="dashboard-card-label">{row.itemTypeName}</div>
+                  <div className="dashboard-card-value">{loading ? '...' : money(row.totalAmount)}</div>
+                  <div className="dashboard-card-hint">
+                    Profit: {loading ? '...' : money(row.totalProfit)}
+                  </div>
                 </div>
               ))}
             </div>

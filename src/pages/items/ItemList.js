@@ -29,6 +29,11 @@ const ItemList = () => {
         ? value.map(c => c.name || c).join(', ') 
         : 'No categories'
     },
+    {
+      header: 'Item type',
+      accessor: 'itemType',
+      render: (value) => value?.name || '—',
+    },
     { 
       header: 'Quantity', 
       accessor: 'quantity',

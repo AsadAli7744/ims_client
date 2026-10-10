@@ -1,46 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import FilterActions from '../../components/FilterActions';
 import '../../components/FilterPanel.css';
-import { PAYMENT_LABELS } from './salePayment';
-import CatalogFilterFields from '../../components/CatalogFilterFields';
-import { ITEM_CONDITIONS } from '../items/itemCondition';
 
 const emptyFilters = {
+  installmentStatus: '',
+  search: '',
   date: '',
   dateFrom: '',
   dateTo: '',
-  search: '',
-  paymentStatus: '',
-  dueToday: '',
-  condition: '',
-  companyId: '',
-  categoryId: '',
-  itemTypeId: '',
 };
 
-const SaleFilterPanel = ({ onFilterChange, onClear, currentFilters = {} }) => {
+const SaleInstallmentFilterPanel = ({ onFilterChange, onClear, currentFilters = {} }) => {
   const [filters, setFilters] = useState({ ...emptyFilters, ...currentFilters });
 
   useEffect(() => {
     setFilters({ ...emptyFilters, ...currentFilters });
   }, [
+    currentFilters.installmentStatus,
+    currentFilters.search,
     currentFilters.date,
     currentFilters.dateFrom,
     currentFilters.dateTo,
-    currentFilters.search,
-    currentFilters.paymentStatus,
-    currentFilters.dueToday,
-    currentFilters.condition,
-    currentFilters.companyId,
-    currentFilters.categoryId,
-    currentFilters.itemTypeId,
   ]);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const nextValue = type === 'checkbox' ? (checked ? 'true' : '') : value;
-    const newFilters = { ...filters, [name]: nextValue };
-    if (name === 'date' && nextValue) {
+    const { name, value } = e.target;
+    const newFilters = { ...filters, [name]: value };
+    if (name === 'date' && value) {
       newFilters.dateFrom = '';
       newFilters.dateTo = '';
     }
@@ -68,31 +54,21 @@ const SaleFilterPanel = ({ onFilterChange, onClear, currentFilters = {} }) => {
       <div className="filter-panel-body">
         <div className="filter-row">
           <div className="filter-field">
-            <label htmlFor="paymentStatus">Payment:</label>
+            <label htmlFor="installmentStatus">Status:</label>
             <select
-              id="paymentStatus"
-              name="paymentStatus"
-              value={filters.paymentStatus}
+              id="installmentStatus"
+              name="installmentStatus"
+              value={filters.installmentStatus}
               onChange={handleChange}
               className="filter-input"
             >
               <option value="">All</option>
-              {Object.entries(PAYMENT_LABELS).map(([status, label]) => (
-                <option key={status} value={status}>{label}</option>
-              ))}
+              <option value="overdue">Overdue</option>
+              <option value="dueToday">Due today</option>
+              <option value="upcoming">Upcoming</option>
+              <option value="pending">Pending payment</option>
+              <option value="partial">Partially paid</option>
             </select>
-          </div>
-          <div className="filter-field">
-            <label htmlFor="dueToday" className="filter-checkbox-label">
-              <input
-                type="checkbox"
-                id="dueToday"
-                name="dueToday"
-                checked={filters.dueToday === 'true'}
-                onChange={handleChange}
-              />
-              Due today
-            </label>
           </div>
           <div className="filter-field">
             <label htmlFor="search">Customer:</label>
@@ -106,25 +82,8 @@ const SaleFilterPanel = ({ onFilterChange, onClear, currentFilters = {} }) => {
               className="filter-input"
             />
           </div>
-          <CatalogFilterFields filters={filters} onChange={handleChange} />
           <div className="filter-field">
-            <label htmlFor="condition">Condition:</label>
-            <select
-              id="condition"
-              name="condition"
-              value={filters.condition}
-              onChange={handleChange}
-              className="filter-input"
-            >
-              <option value="">All items</option>
-              <option value="second_hand">Second-hand only</option>
-              {ITEM_CONDITIONS.map((entry) => (
-                <option key={entry.value} value={entry.value}>{entry.label}</option>
-              ))}
-            </select>
-          </div>
-          <div className="filter-field">
-            <label htmlFor="date">Single Date:</label>
+            <label htmlFor="date">Due date:</label>
             <input
               type="date"
               id="date"
@@ -135,7 +94,7 @@ const SaleFilterPanel = ({ onFilterChange, onClear, currentFilters = {} }) => {
             />
           </div>
           <div className="filter-field">
-            <label htmlFor="dateFrom">Date From:</label>
+            <label htmlFor="dateFrom">Due from:</label>
             <input
               type="date"
               id="dateFrom"
@@ -146,7 +105,7 @@ const SaleFilterPanel = ({ onFilterChange, onClear, currentFilters = {} }) => {
             />
           </div>
           <div className="filter-field">
-            <label htmlFor="dateTo">Date To:</label>
+            <label htmlFor="dateTo">Due to:</label>
             <input
               type="date"
               id="dateTo"
@@ -163,4 +122,4 @@ const SaleFilterPanel = ({ onFilterChange, onClear, currentFilters = {} }) => {
   );
 };
 
-export default SaleFilterPanel;
+export default SaleInstallmentFilterPanel;

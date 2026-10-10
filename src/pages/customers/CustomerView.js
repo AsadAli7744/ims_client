@@ -12,7 +12,7 @@ const CustomerView = () => {
     { label: 'Phone', accessor: 'phone', render: (value) => value || '—' },
     { label: 'Email', accessor: 'email', render: (value) => value || '—' },
     { label: 'Address', accessor: 'address', render: (value) => value || '—' },
-    { label: 'CNIC', accessor: 'cnic', render: (value) => value || '—' },
+    { label: 'CNIC / ID', accessor: 'cnic', render: (value) => value || '—' },
     { label: 'Shop', accessor: 'shop', render: (value) => value?.name || 'Organization' },
     { label: 'Notes', accessor: 'notes', render: (value) => value || '—' },
   ];

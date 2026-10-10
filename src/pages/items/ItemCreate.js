@@ -4,7 +4,7 @@ import Navigation from '../../components/Navigation';
 import FormWrapper from '../../components/FormWrapper';
 import FormField from '../../components/FormField';
 import Input from '../../components/Input';
-import { itemsApi, companiesApi, categoriesApi, storesApi, shopsApi, unwrapList } from '../../services/api';
+import { itemsApi, companiesApi, categoriesApi, itemTypesApi, storesApi, shopsApi, unwrapList } from '../../services/api';
 import { useShop } from '../../contexts/ShopContext';
 import RequireShop from '../../components/RequireShop';
 import { getAssignedShops, getUser } from '../../services/session';
@@ -19,6 +19,7 @@ const ItemCreate = () => {
     categories: [],
     storeId: '',
     shopId: '',
+    itemTypeId: '',
     location: '',
     uniqueIdentifier: '',
     condition: '',
@@ -28,6 +29,7 @@ const ItemCreate = () => {
   });
   const [companies, setCompanies] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [itemTypes, setItemTypes] = useState([]);
   const [stores, setStores] = useState([]);
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -43,12 +45,26 @@ const ItemCreate = () => {
   const showShopSelect = availableShops.length > 1;
   const showStoreSelect = availableStores.length > 1;
 
+  const resolvedShopId = formData.shopId
+    || (!showShopSelect ? (selectedShop?.id || availableShops[0]?.id) : '')
+    || '';
+
   useEffect(() => {
     loadCompanies();
     loadCategories();
     loadStores();
     loadShops();
   }, []);
+
+  useEffect(() => {
+    if (!resolvedShopId) {
+      setItemTypes([]);
+      return;
+    }
+    itemTypesApi.getAll(1, 100, { shopId: resolvedShopId })
+      .then((data) => setItemTypes(unwrapList(data)))
+      .catch(() => setItemTypes([]));
+  }, [resolvedShopId]);
 
   const loadCompanies = async () => {
     try {
@@ -99,7 +115,8 @@ const ItemCreate = () => {
       setFormData({
         ...formData,
         storeId: value,
-        shopId: '' // Clear shop when store is selected
+        shopId: '', // Clear shop when store is selected
+        itemTypeId: '',
       });
     } else if (e.target.name === 'shopId') {
       // When selecting a shop, clear store
@@ -107,7 +124,8 @@ const ItemCreate = () => {
       setFormData({
         ...formData,
         shopId: value,
-        storeId: '' // Clear store when shop is selected
+        storeId: '', // Clear store when shop is selected
+        itemTypeId: '',
       });
     } else {
       setFormData({
@@ -158,6 +176,9 @@ const ItemCreate = () => {
       } else if (!showStoreSelect && (selectedStore?.id || availableStores[0]?.id)) {
         submitData.storeId = selectedStore?.id || availableStores[0].id;
       }
+      if (formData.itemTypeId) {
+        submitData.itemTypeId = parseInt(formData.itemTypeId, 10);
+      }
       await itemsApi.create(submitData);
       navigate('/items');
     } catch (error) {
@@ -169,6 +190,7 @@ const ItemCreate = () => {
 
   const companyOptions = companies.map(comp => ({ value: comp.id, label: comp.name }));
   const categoryOptions = categories.map(cat => ({ value: cat.id, label: cat.name }));
+  const itemTypeOptions = itemTypes.map((entry) => ({ value: entry.id, label: entry.name }));
 
   return (
     <div>
@@ -208,6 +230,19 @@ const ItemCreate = () => {
               multiple={true}
             />
           </FormField>
+          <FormField label="Item type (optional)" htmlFor="itemTypeId">
+            <Input
+              type="dropdown"
+              name="itemTypeId"
+              placeholder={resolvedShopId ? 'Select item type' : 'Select a shop first'}
+              value={formData.itemTypeId}
+              onChange={handleChange}
+              options={itemTypeOptions}
+              disabled={!resolvedShopId}
+            />
+          </FormField>
+        </div>
+        <div className="form-fields-row">
           <FormField label="Location (optional)" htmlFor="location">
             <Input
               type="text"

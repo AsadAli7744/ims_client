@@ -4,7 +4,7 @@ import Navigation from '../../components/Navigation';
 import FormWrapper from '../../components/FormWrapper';
 import FormField from '../../components/FormField';
 import Input from '../../components/Input';
-import { itemsApi, companiesApi, categoriesApi, storesApi, shopsApi, unwrapList } from '../../services/api';
+import { itemsApi, companiesApi, categoriesApi, itemTypesApi, storesApi, shopsApi, unwrapList } from '../../services/api';
 import { ITEM_CONDITIONS } from './itemCondition';
 
 const ItemEdit = () => {
@@ -16,6 +16,7 @@ const ItemEdit = () => {
     categories: [],
     storeId: '',
     shopId: '',
+    itemTypeId: '',
     location: '',
     uniqueIdentifier: '',
     condition: '',
@@ -25,6 +26,7 @@ const ItemEdit = () => {
   });
   const [companies, setCompanies] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [itemTypes, setItemTypes] = useState([]);
   const [stores, setStores] = useState([]);
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -38,6 +40,16 @@ const ItemEdit = () => {
     loadShops();
   }, [id]);
 
+  useEffect(() => {
+    if (!formData.shopId) {
+      setItemTypes([]);
+      return;
+    }
+    itemTypesApi.getAll(1, 100, { shopId: formData.shopId })
+      .then((data) => setItemTypes(unwrapList(data)))
+      .catch(() => setItemTypes([]));
+  }, [formData.shopId]);
+
   const loadData = async () => {
     try {
       setLoadingData(true);
@@ -49,6 +61,7 @@ const ItemEdit = () => {
         categories: data.categories?.map(c => c.id || c) || data.categories || [],
         storeId: data.store?.id || data.storeId || '',
         shopId: data.shop?.id || data.shopId || '',
+        itemTypeId: data.itemType?.id || '',
         uniqueIdentifier: data.uniqueIdentifier || '',
         condition: data.condition || '',
         quantity: data.quantity ?? 0
@@ -109,7 +122,8 @@ const ItemEdit = () => {
       setFormData({
         ...formData,
         storeId: value,
-        shopId: '' // Clear shop when store is selected
+        shopId: '',
+        itemTypeId: '',
       });
     } else if (e.target.name === 'shopId') {
       // When selecting a shop, clear store
@@ -117,7 +131,8 @@ const ItemEdit = () => {
       setFormData({
         ...formData,
         shopId: value,
-        storeId: '' // Clear store when shop is selected
+        storeId: '',
+        itemTypeId: '',
       });
     } else {
       setFormData({
@@ -152,6 +167,7 @@ const ItemEdit = () => {
           : [],
         storeId: formData.storeId && formData.storeId !== '' ? parseInt(formData.storeId) : undefined,
         shopId: formData.shopId && formData.shopId !== '' ? parseInt(formData.shopId) : undefined,
+        itemTypeId: formData.itemTypeId ? parseInt(formData.itemTypeId, 10) : null,
         location: formData.location || '',
         uniqueIdentifier: formData.uniqueIdentifier?.trim() || null,
         condition: formData.condition || null,
@@ -181,6 +197,7 @@ const ItemEdit = () => {
 
   const companyOptions = companies.map(comp => ({ value: comp.id, label: comp.name }));
   const categoryOptions = categories.map(cat => ({ value: cat.id, label: cat.name }));
+  const itemTypeOptions = itemTypes.map((entry) => ({ value: entry.id, label: entry.name }));
   const storeOptions = stores.map(store => ({ value: store.id, label: store.name }));
   const shopOptions = shops.map(shop => ({ value: shop.id, label: shop.name }));
 
@@ -221,6 +238,19 @@ const ItemEdit = () => {
               multiple={true}
             />
           </FormField>
+          <FormField label="Item type (optional)" htmlFor="itemTypeId">
+            <Input
+              type="dropdown"
+              name="itemTypeId"
+              placeholder={formData.shopId ? 'Select item type' : 'Select a shop first'}
+              value={formData.itemTypeId}
+              onChange={handleChange}
+              options={itemTypeOptions}
+              disabled={!formData.shopId}
+            />
+          </FormField>
+        </div>
+        <div className="form-fields-row">
           <FormField label="Location" htmlFor="location">
             <Input
               type="text"

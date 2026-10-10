@@ -26,6 +26,12 @@ import CategoryCreate from './pages/categories/CategoryCreate';
 import CategoryView from './pages/categories/CategoryView';
 import CategoryEdit from './pages/categories/CategoryEdit';
 
+// Item Types (superadmin)
+import ItemTypeList from './pages/item-types/ItemTypeList';
+import ItemTypeCreate from './pages/item-types/ItemTypeCreate';
+import ItemTypeView from './pages/item-types/ItemTypeView';
+import ItemTypeEdit from './pages/item-types/ItemTypeEdit';
+
 // Companies
 import CompanyList from './pages/companies/CompanyList';
 import CompanyCreate from './pages/companies/CompanyCreate';
@@ -48,6 +54,7 @@ import SaleList from './pages/sales/SaleList';
 import SaleCreate from './pages/sales/SaleCreate';
 import SaleView from './pages/sales/SaleView';
 import SaleEdit from './pages/sales/SaleEdit';
+import PromiseList from './pages/promises/PromiseList';
 
 // Services
 import ServiceList from './pages/services/ServiceList';
@@ -68,6 +75,7 @@ import SellerView from './pages/sellers/SellerView';
 import SellerEdit from './pages/sellers/SellerEdit';
 
 // Installments
+import SaleInstallmentList from './pages/installments/SaleInstallmentList';
 import InstallmentList from './pages/installments/InstallmentList';
 import InstallmentPlanCreate from './pages/installments/InstallmentPlanCreate';
 import InstallmentPlanView from './pages/installments/InstallmentPlanView';
@@ -163,6 +171,12 @@ function App() {
           <Route path="/categories/create" element={<RequirePermission permission="categories.write"><CategoryCreate /></RequirePermission>} />
           <Route path="/categories/:id" element={<RequirePermission permission="categories"><CategoryView /></RequirePermission>} />
           <Route path="/categories/:id/edit" element={<RequirePermission permission="categories"><CategoryEdit /></RequirePermission>} />
+
+          {/* Item Types — superadmin only */}
+          <Route path="/item-types" element={<RequireSuperAdmin><ItemTypeList /></RequireSuperAdmin>} />
+          <Route path="/item-types/create" element={<RequireSuperAdmin><ItemTypeCreate /></RequireSuperAdmin>} />
+          <Route path="/item-types/:id" element={<RequireSuperAdmin><ItemTypeView /></RequireSuperAdmin>} />
+          <Route path="/item-types/:id/edit" element={<RequireSuperAdmin><ItemTypeEdit /></RequireSuperAdmin>} />
           
           {/* Companies Routes */}
           <Route path="/companies" element={<RequirePermission permission="companies"><CompanyList /></RequirePermission>} />
@@ -187,6 +201,7 @@ function App() {
           <Route path="/sales/create" element={<RequirePermission permission="sales"><SaleCreate /></RequirePermission>} />
           <Route path="/sales/:id" element={<RequirePermission permission="sales"><SaleView /></RequirePermission>} />
           <Route path="/sales/:id/edit" element={<RequirePermission permission="sales"><SaleEdit /></RequirePermission>} />
+          <Route path="/promises" element={<RequirePermission permission="sales"><PromiseList /></RequirePermission>} />
 
           {/* Customers Routes */}
           <Route path="/customers" element={<RequirePermission permission="customers.read"><CustomerList /></RequirePermission>} />
@@ -206,8 +221,11 @@ function App() {
           <Route path="/services/:id" element={<RequirePermission permission="services.read"><ServiceView /></RequirePermission>} />
           <Route path="/services/:id/edit" element={<RequirePermission permission="services.write"><ServiceEdit /></RequirePermission>} />
 
-          {/* Installments Routes */}
-          <Route path="/installments" element={<RequirePermission permission="installments.read"><InstallmentList /></RequirePermission>} />
+          {/* Sale installments (credit sales with a payment plan) */}
+          <Route path="/installments" element={<RequirePermission permission="sales"><SaleInstallmentList /></RequirePermission>} />
+
+          {/* Standalone installment plans */}
+          <Route path="/installment-plans" element={<RequirePermission permission="installments.read"><InstallmentList /></RequirePermission>} />
           <Route path="/installments/plans/create" element={<RequirePermission permission="installments.write"><InstallmentPlanCreate /></RequirePermission>} />
           <Route path="/installments/plans/:id" element={<RequirePermission permission="installments.read"><InstallmentPlanView /></RequirePermission>} />
           <Route path="/installments/plans/:id/edit" element={<RequirePermission permission="installments.write"><InstallmentPlanEdit /></RequirePermission>} />

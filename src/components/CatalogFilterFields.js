@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { categoriesApi, companiesApi, unwrapList } from '../services/api';
+import ItemTypeFilterField from './ItemTypeFilterField';
 
-const CatalogFilterFields = ({ filters = {}, onChange }) => {
+const CatalogFilterFields = ({ filters = {}, onChange, showItemType = true }) => {
   const [companies, setCompanies] = useState([]);
   const [categories, setCategories] = useState([]);
 
@@ -46,6 +47,9 @@ const CatalogFilterFields = ({ filters = {}, onChange }) => {
           ))}
         </select>
       </div>
+      {showItemType && (
+        <ItemTypeFilterField filters={filters} onChange={onChange} />
+      )}
     </>
   );
 };
