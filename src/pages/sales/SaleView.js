@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Navigation from '../../components/Navigation';
 import Input from '../../components/Input';
 import PermissionLink from '../../components/PermissionLink';
+import DownloadPngButton from '../../components/DownloadPngButton';
 import { salesApi } from '../../services/api';
 import { FREQUENCY_LABELS, money, moneyText, paymentLabel, todayIso } from './salePayment';
 import { itemOptionLabel } from '../items/itemCondition';
@@ -13,6 +14,7 @@ import './SaleView.css';
 const SaleView = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const captureRef = useRef(null);
   const [sale, setSale] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -123,6 +125,7 @@ const SaleView = () => {
             <button onClick={() => navigate('/sales')} className="single-view-button">
               Back
             </button>
+            <DownloadPngButton targetRef={captureRef} filename={`sale-${sale.id || id}.png`} />
             {canWrite && (
               <button onClick={() => navigate(`/sales/${id}/edit`)} className="single-view-button single-view-button-primary">
                 Edit
@@ -131,7 +134,17 @@ const SaleView = () => {
           </div>
         </div>
 
+        <div ref={captureRef} className="download-capture">
         <div className="sale-view-card">
+          <div className="sale-view-header" style={{ marginBottom: 12 }}>
+            <div>
+              <h1 style={{ fontSize: 22 }}>Sale #{sale.id}</h1>
+              <p className="sale-view-subtitle">
+                {customerName}
+                {customerExtra ? ` · ${customerExtra}` : ''}
+              </p>
+            </div>
+          </div>
           <div className="sale-view-grid">
             <Stat label="Customer">
               {sale.customer ? (
@@ -219,6 +232,7 @@ const SaleView = () => {
               </tbody>
             </table>
           )}
+        </div>
         </div>
 
         {canWrite && remaining > 0.001 && (

@@ -1,119 +1,177 @@
-import React from 'react';
-import SingleView from '../../components/SingleView';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import Navigation from '../../components/Navigation';
 import PermissionLink from '../../components/PermissionLink';
 import { itemsApi } from '../../services/api';
 import { conditionLabel } from './itemCondition';
 import { formatAmount } from '../../utils/formatAmount';
+import { hasPermission } from '../../services/session';
+import '../../components/SingleView.css';
+import '../sales/SaleView.css';
+import './ItemView.css';
 
 const ItemView = () => {
-  const fields = [
-    { label: 'Name', accessor: 'name' },
-    { 
-      label: 'Company', 
-      accessor: 'company',
-      render: (value) => value?.id
-        ? <PermissionLink module="companies" to={`/companies/${value.id}`}>{value.name || 'N/A'}</PermissionLink>
-        : (value?.name || 'N/A')
-    },
-    { 
-      label: 'Categories', 
-      accessor: 'categories',
-      render: (value) => Array.isArray(value) && value.length > 0
-        ? value.map(c => c.name || c).join(', ')
-        : 'No categories'
-    },
-    {
-      label: 'Item type',
-      accessor: 'itemType',
-      render: (value) => value?.name || '—',
-    },
-    { 
-      label: 'Store', 
-      accessor: 'store',
-      render: (value) => value?.id
-        ? <PermissionLink module="stores" to={`/stores/${value.id}`}>{value.name || 'N/A'}</PermissionLink>
-        : (value?.name || 'N/A')
-    },
-    { 
-      label: 'Shop', 
-      accessor: 'shop',
-      render: (value) => value?.id
-        ? <PermissionLink module="shops" to={`/shops/${value.id}`}>{value.name || 'N/A'}</PermissionLink>
-        : (value?.name || 'N/A')
-    },
-    { label: 'Location', accessor: 'location' },
-    { label: 'Unique Identifier', accessor: 'uniqueIdentifier', render: (value) => value || '—' },
-    { label: 'Condition / Grade', accessor: 'condition', render: (value) => conditionLabel(value) },
-    { 
-      label: 'Quantity', 
-      accessor: 'quantity',
-      render: (value) => value ?? 0
-    },
-    { 
-      label: 'FIFO Cost (next out)', 
-      accessor: 'purchasePrice',
-      render: (value) => formatAmount(value)
-    },
-    { 
-      label: 'Stock Value (FIFO)', 
-      accessor: 'fifoValue',
-      render: (value, row) => {
-        if (typeof value === 'number') {
-          return formatAmount(value);
-        }
-        const qty = row.quantity ?? 0;
-        const price = typeof row.purchasePrice === 'string' 
-          ? parseFloat(row.purchasePrice) 
-          : (row.purchasePrice || 0);
-        return formatAmount(qty * price);
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [item, setItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        setLoading(true);
+        const result = await itemsApi.getOne(id);
+        if (active) setItem(result);
+      } catch (error) {
+        console.error('Error loading item:', error);
+        if (active) setItem(null);
+      } finally {
+        if (active) setLoading(false);
       }
-    },
-    { 
-      label: 'FIFO Lots', 
-      accessor: 'lots',
-      render: (lots) => {
-        if (!Array.isArray(lots) || lots.length === 0) {
-          return 'No remaining lots';
-        }
-        return (
-          <table className="sale-items-table">
-            <thead>
-              <tr>
-                <th>Received</th>
-                <th>Remaining</th>
-                <th>Unit Cost</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lots.map((lot) => (
-                <tr key={lot.id}>
-                  <td>{lot.receivedAt ? new Date(lot.receivedAt).toLocaleDateString() : 'N/A'}</td>
-                  <td>{lot.remainingQuantity}</td>
-                  <td>{formatAmount(lot.unitCost)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        );
-      }
-    },
-    { 
-      label: 'Minimum Sale Price', 
-      accessor: 'minimumSalePrice',
-      render: (value) => formatAmount(value)
-    },
-  ];
+    })();
+    return () => { active = false; };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div>
+        <Navigation />
+        <div className="item-view-page">
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!item) {
+    return (
+      <div>
+        <Navigation />
+        <div className="item-view-page">
+          <p>Item not found</p>
+          <button type="button" onClick={() => navigate('/items')} className="single-view-button">
+            Back to List
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const canWrite = hasPermission('items.write');
+  const categories = Array.isArray(item.categories) && item.categories.length > 0
+    ? item.categories.map((c) => c.name || c).join(', ')
+    : 'No categories';
+  const stockValue = typeof item.fifoValue === 'number'
+    ? item.fifoValue
+    : (item.quantity ?? 0) * (Number(item.purchasePrice) || 0);
+  const lots = Array.isArray(item.lots) ? item.lots : [];
+
+  const Stat = ({ label, children }) => (
+    <div className="sale-view-stat">
+      <span>{label}</span>
+      <strong>{children}</strong>
+    </div>
+  );
 
   return (
-    <SingleView
-      title="Item Details"
-      fetchData={itemsApi.getOne}
-      fields={fields}
-      basePath="/items"
-      writePermission="items.write"
-    />
+    <div>
+      <Navigation />
+      <div className="item-view-page">
+        <div className="sale-view-header">
+          <div>
+            <h1>Item Details</h1>
+            <p className="sale-view-subtitle">
+              {item.name || 'Untitled item'}
+              {item.uniqueIdentifier ? ` · ${item.uniqueIdentifier}` : ''}
+            </p>
+          </div>
+          <div className="single-view-actions">
+            <button type="button" onClick={() => navigate('/items')} className="single-view-button">
+              Back
+            </button>
+            {canWrite && (
+              <button
+                type="button"
+                onClick={() => navigate(`/items/${id}/edit`)}
+                className="single-view-button single-view-button-primary"
+              >
+                Edit
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="sale-view-card">
+          <div className="sale-view-grid">
+            <Stat label="Name">{item.name || '—'}</Stat>
+            <Stat label="Company">
+              {item.company?.id ? (
+                <PermissionLink module="companies" to={`/companies/${item.company.id}`}>
+                  {item.company.name || 'N/A'}
+                </PermissionLink>
+              ) : (item.company?.name || 'N/A')}
+            </Stat>
+            <Stat label="Categories">{categories}</Stat>
+            <Stat label="Item type">{item.itemType?.name || '—'}</Stat>
+            <Stat label="Condition">{conditionLabel(item.condition)}</Stat>
+            <Stat label="Unique ID">{item.uniqueIdentifier || '—'}</Stat>
+            <Stat label="Shop">
+              {item.shop?.id ? (
+                <PermissionLink module="shops" to={`/shops/${item.shop.id}`}>
+                  {item.shop.name || 'N/A'}
+                </PermissionLink>
+              ) : (item.shop?.name || 'N/A')}
+            </Stat>
+            <Stat label="Store">
+              {item.store?.id ? (
+                <PermissionLink module="stores" to={`/stores/${item.store.id}`}>
+                  {item.store.name || 'N/A'}
+                </PermissionLink>
+              ) : (item.store?.name || 'N/A')}
+            </Stat>
+            <Stat label="Location">{item.location || '—'}</Stat>
+          </div>
+        </div>
+
+        <div className="sale-view-card">
+          <h3>Stock</h3>
+          <div className="sale-view-grid">
+            <Stat label="Quantity">{item.quantity ?? 0}</Stat>
+            <Stat label="FIFO cost">{formatAmount(item.purchasePrice)}</Stat>
+            <Stat label="Stock value">{formatAmount(stockValue)}</Stat>
+            <Stat label="Min sale price">{formatAmount(item.minimumSalePrice)}</Stat>
+          </div>
+        </div>
+
+        <div className="sale-view-card">
+          <h3>FIFO lots</h3>
+          {lots.length === 0 ? (
+            <p className="sale-view-empty">No remaining lots</p>
+          ) : (
+            <table className="sale-items-table">
+              <thead>
+                <tr>
+                  <th>Received</th>
+                  <th>Remaining</th>
+                  <th>Unit cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                {lots.map((lot) => (
+                  <tr key={lot.id}>
+                    <td>{lot.receivedAt ? new Date(lot.receivedAt).toLocaleDateString() : 'N/A'}</td>
+                    <td>{lot.remainingQuantity}</td>
+                    <td>{formatAmount(lot.unitCost)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 
 export default ItemView;
-
