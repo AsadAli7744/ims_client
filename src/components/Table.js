@@ -14,7 +14,17 @@ const ActionIcon = ({ name }) => {
   );
 };
 
-const Table = ({ columns, data = [], onEdit, onDelete, onView, loading = false, emptyMessage = 'No records yet' }) => {
+const Table = ({
+  columns,
+  data = [],
+  onEdit,
+  onDelete,
+  onView,
+  canEdit,
+  canDelete,
+  loading = false,
+  emptyMessage = 'No records yet',
+}) => {
   return (
     <div className="table-container">
       <table className="common-table">
@@ -60,7 +70,7 @@ const Table = ({ columns, data = [], onEdit, onDelete, onView, loading = false, 
                         <ActionIcon name="view" />
                       </button>
                     )}
-                    {onEdit && (
+                    {onEdit && (!canEdit || canEdit(row)) && (
                       <button
                         type="button"
                         onClick={() => onEdit(row.id || rowIndex, row)}
@@ -71,7 +81,7 @@ const Table = ({ columns, data = [], onEdit, onDelete, onView, loading = false, 
                         <ActionIcon name="edit" />
                       </button>
                     )}
-                    {onDelete && (
+                    {onDelete && (!canDelete || canDelete(row)) && (
                       <button
                         type="button"
                         onClick={() => onDelete(row.id || rowIndex)}

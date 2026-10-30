@@ -11,6 +11,7 @@ export const APP_MODULE_CATALOG = [
   { key: 'companies', label: 'Companies' },
   { key: 'purchases', label: 'Purchases' },
   { key: 'expenses', label: 'Expenses' },
+  { key: 'payments', label: 'Payments' },
   { key: 'shops', label: 'Shops' },
   { key: 'stores', label: 'Stores' },
   { key: 'users', label: 'Users & permissions' },

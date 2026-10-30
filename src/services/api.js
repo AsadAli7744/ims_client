@@ -37,6 +37,9 @@ const apiCall = async (endpoint, options = {}) => {
     if (options.filters.companyId) params.append('companyId', options.filters.companyId);
     if (options.filters.categoryId) params.append('categoryId', options.filters.categoryId);
     if (options.filters.itemTypeId) params.append('itemTypeId', options.filters.itemTypeId);
+    if (options.filters.sourceType) params.append('sourceType', options.filters.sourceType);
+    if (options.filters.saleId) params.append('saleId', options.filters.saleId);
+    if (options.filters.purchaseId) params.append('purchaseId', options.filters.purchaseId);
   }
   
   if (options.storeId) params.append('storeId', options.storeId);
@@ -122,6 +125,7 @@ export const shopsApi = {
   getAll: (page, limit, filters) => apiCall('/shops', { page, limit, filters, tenantId: filters?.tenantId }),
   getOne: (id) => apiCall(`/shops/${id}`),
   getItems: (id) => apiCall(`/shops/${id}/items`),
+  getUsers: (id) => apiCall(`/shops/${id}/users`),
   getAssetValue: (id) => apiCall(`/shops/${id}/asset-value`),
   create: (data) => apiCall('/shops', { method: 'POST', body: data }),
   update: (id, data) => apiCall(`/shops/${id}`, { method: 'PATCH', body: data }),
@@ -416,6 +420,46 @@ export const purchasesApi = {
   },
   update: (id, data) => apiCall(`/purchases/${id}`, { method: 'PATCH', body: data }),
   delete: (id) => apiCall(`/purchases/${id}`, { method: 'DELETE' }),
+};
+
+export const paymentsApi = {
+  getAll: (page, limit, filters) => {
+    const options = { page, limit, filters: {} };
+    const shopId = resolveShopId(filters);
+    if (shopId) {
+      options.shopId = shopId;
+    }
+    if (filters?.date) options.filters.date = filters.date;
+    if (filters?.dateFrom) options.filters.dateFrom = filters.dateFrom;
+    if (filters?.dateTo) options.filters.dateTo = filters.dateTo;
+    if (filters?.search) options.filters.search = filters.search;
+    if (filters?.sourceType) options.filters.sourceType = filters.sourceType;
+    if (filters?.saleId) options.filters.saleId = filters.saleId;
+    if (filters?.purchaseId) options.filters.purchaseId = filters.purchaseId;
+    return apiCall('/payments', options);
+  },
+  getOne: (id) => apiCall(`/payments/${id}`),
+  getTotals: (filters) => {
+    const options = { filters: {} };
+    const shopId = resolveShopId(filters);
+    if (shopId) {
+      options.shopId = shopId;
+    }
+    if (filters?.date) options.filters.date = filters.date;
+    if (filters?.dateFrom) options.filters.dateFrom = filters.dateFrom;
+    if (filters?.dateTo) options.filters.dateTo = filters.dateTo;
+    if (filters?.sourceType) options.filters.sourceType = filters.sourceType;
+    return apiCall('/payments/totals', options);
+  },
+  create: (data) => {
+    const shopId = getSelectedShopId();
+    if (shopId && !data.shopId) {
+      data.shopId = shopId;
+    }
+    return apiCall('/payments', { method: 'POST', body: data });
+  },
+  update: (id, data) => apiCall(`/payments/${id}`, { method: 'PATCH', body: data }),
+  delete: (id) => apiCall(`/payments/${id}`, { method: 'DELETE' }),
 };
 
 export const expensesApi = {

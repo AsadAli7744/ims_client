@@ -7,8 +7,9 @@ import Input from '../../components/Input';
 import { salesApi, itemsApi } from '../../services/api';
 import RequireShop from '../../components/RequireShop';
 import SalePaymentFields from './SalePaymentFields';
+import CashAccountFields from '../../components/CashAccountFields';
 import { ItemSearchSelect } from '../../components/entitySearchSelects';
-import { buildSalePaymentPayload, emptyPaymentForm, validatePaymentForm } from './salePayment';
+import { buildSalePaymentPayload, emptyPaymentForm, money, validatePaymentForm } from './salePayment';
 import { itemNameLabel, itemOptionLabel } from '../items/itemCondition';
 import { formatAmount } from '../../utils/formatAmount';
 import '../../components/ItemInfoBox.css';
@@ -254,6 +255,22 @@ const SaleCreate = () => {
             <strong>Profit</strong> {formatAmount(totalProfit)}
           </div>
         </div> */}
+
+        <CashAccountFields
+          title="Cash / Account"
+          hint="Part of this sale (customer is optional). Use cash, account, or both. Account needs a receiver name."
+          value={payment}
+          onChange={(next) => {
+            const cash = money(next.cashAmount);
+            const account = money(next.accountAmount);
+            const split = cash + account;
+            setPayment({
+              ...payment,
+              ...next,
+              amountPaid: split > 0 ? String(split) : payment.amountPaid,
+            });
+          }}
+        />
 
         <SalePaymentFields
           totalAmount={totalAmount}

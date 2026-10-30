@@ -46,6 +46,21 @@ const PurchaseList = () => {
       }
     },
     {
+      header: 'Invoice price',
+      accessor: 'invoicePrice',
+      render: (value) => (value == null || value === '' ? '—' : formatAmount(value)),
+    },
+    {
+      header: 'RAM',
+      accessor: 'ram',
+      render: (value) => value || '—',
+    },
+    {
+      header: 'ROM',
+      accessor: 'rom',
+      render: (value) => value || '—',
+    },
+    {
       header: 'Seller',
       accessor: 'seller',
       render: (value) => value?.name || '—',

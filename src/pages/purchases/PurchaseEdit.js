@@ -4,11 +4,18 @@ import Navigation from '../../components/Navigation';
 import FormWrapper from '../../components/FormWrapper';
 import FormField from '../../components/FormField';
 import Input from '../../components/Input';
-import { purchasesApi } from '../../services/api';
+import { purchasesApi, paymentsApi, unwrapList } from '../../services/api';
 import { ItemSearchSelect, SellerSearchSelect } from '../../components/entitySearchSelects';
 import InlineCreatePanel from '../../components/InlineCreatePanel';
 import { itemNameLabel, itemOptionLabel } from '../items/itemCondition';
 import { hasPermission } from '../../services/session';
+import CashAccountFields, {
+  buildPaymentSplitPayload,
+  cashAccountFromPayment,
+  emptyCashAccount,
+  validateCashAccount,
+} from '../../components/CashAccountFields';
+import { PURCHASE_RAM_OPTIONS, PURCHASE_ROM_OPTIONS } from './purchaseOptions';
 
 const PurchaseEdit = () => {
   const navigate = useNavigate();
@@ -19,12 +26,16 @@ const PurchaseEdit = () => {
     purchasePrice: '',
     quantity: 1,
     purchaseDate: new Date().toISOString().split('T')[0],
+    invoicePrice: '',
+    ram: '',
+    rom: '',
     sellerId: '',
     sellerLabel: '',
     newSellerName: '',
     newSellerPhone: '',
     newSellerCnic: '',
   });
+  const [paymentSplit, setPaymentSplit] = useState(emptyCashAccount());
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const canUseSellers = hasPermission('sellers');
@@ -37,12 +48,22 @@ const PurchaseEdit = () => {
     try {
       setLoadingData(true);
       const data = await purchasesApi.getOne(id);
+      let ledgerPayment = null;
+      try {
+        const paymentRows = unwrapList(await paymentsApi.getAll(1, 1, { purchaseId: id }));
+        ledgerPayment = paymentRows[0] || null;
+      } catch (e) {
+        ledgerPayment = null;
+      }
       setFormData({
         itemId: data.item?.id || data.itemId || '',
         itemLabel: data.item ? itemNameLabel(data.item) : '',
         purchasePrice: data.purchasePrice == null || data.purchasePrice === '' ? '' : data.purchasePrice,
         quantity: data.quantity || 1,
         purchaseDate: data.purchaseDate ? new Date(data.purchaseDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        invoicePrice: data.invoicePrice == null || data.invoicePrice === '' ? '' : data.invoicePrice,
+        ram: data.ram || '',
+        rom: data.rom || '',
         sellerId: data.seller?.id || data.sellerId || '',
         sellerLabel: data.seller
           ? [data.seller.phone, data.seller.cnic].filter(Boolean).length
@@ -53,6 +74,7 @@ const PurchaseEdit = () => {
         newSellerPhone: '',
         newSellerCnic: '',
       });
+      setPaymentSplit(cashAccountFromPayment(ledgerPayment));
     } catch (error) {
       console.error('Error loading purchase:', error);
     } finally {
@@ -87,6 +109,12 @@ const PurchaseEdit = () => {
       return;
     }
 
+    const paymentError = validateCashAccount(paymentSplit);
+    if (paymentError) {
+      alert(paymentError);
+      return;
+    }
+
     setLoading(true);
     try {
       const payload = {
@@ -94,6 +122,10 @@ const PurchaseEdit = () => {
         purchasePrice: formData.purchasePrice,
         quantity: formData.quantity || 1,
         purchaseDate: formData.purchaseDate,
+        invoicePrice: formData.invoicePrice !== '' ? Number(formData.invoicePrice) : null,
+        ram: formData.ram || null,
+        rom: formData.rom || null,
+        paymentSplit: buildPaymentSplitPayload(paymentSplit),
         sellerId: formData.sellerId ? parseInt(formData.sellerId) : null,
       };
       if (!formData.sellerId && formData.newSellerName.trim()) {
@@ -140,15 +172,15 @@ const PurchaseEdit = () => {
               onChange={handleChange}
             />
           </FormField>
-          <FormField label="Purchase Price (per unit)" htmlFor="purchasePrice" required>
+          <FormField label="Invoice price" htmlFor="invoicePrice">
             <Input
               type="number"
-              name="purchasePrice"
-              placeholder="Purchase Price (per unit)"
-              value={formData.purchasePrice}
+              name="invoicePrice"
+              placeholder="Optional invoice price"
+              value={formData.invoicePrice}
               onChange={handleChange}
-              step="any"
               min="0"
+              step="any"
             />
           </FormField>
         </div>
@@ -172,6 +204,43 @@ const PurchaseEdit = () => {
             />
           </FormField>
         </div>
+        <div className="form-fields-row">
+          <FormField label="Price per unit" htmlFor="purchasePrice" required>
+            <Input
+              type="number"
+              name="purchasePrice"
+              placeholder="Purchase Price (per unit)"
+              value={formData.purchasePrice}
+              onChange={handleChange}
+              step="any"
+              min="0"
+            />
+          </FormField>
+        </div>
+        <div className="form-fields-row">
+          <FormField label="RAM" htmlFor="ram">
+            <select id="ram" name="ram" value={formData.ram} onChange={handleChange}>
+              <option value="">Not set</option>
+              {PURCHASE_RAM_OPTIONS.map((entry) => (
+                <option key={entry.value} value={entry.value}>{entry.label}</option>
+              ))}
+            </select>
+          </FormField>
+          <FormField label="ROM" htmlFor="rom">
+            <select id="rom" name="rom" value={formData.rom} onChange={handleChange}>
+              <option value="">Not set</option>
+              {PURCHASE_ROM_OPTIONS.map((entry) => (
+                <option key={entry.value} value={entry.value}>{entry.label}</option>
+              ))}
+            </select>
+          </FormField>
+        </div>
+        <CashAccountFields
+          title="Cash / Account"
+          hint="Part of this purchase (seller is optional). Use cash, account, or both. Account needs a receiver name."
+          value={paymentSplit}
+          onChange={setPaymentSplit}
+        />
         {canUseSellers && (
           <div className="form-fields-row">
             <FormField label="Seller" htmlFor="sellerId">

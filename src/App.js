@@ -98,6 +98,12 @@ import ExpenseList from './pages/expenses/ExpenseList';
 import ExpenseCreate from './pages/expenses/ExpenseCreate';
 import ExpenseView from './pages/expenses/ExpenseView';
 import ExpenseEdit from './pages/expenses/ExpenseEdit';
+
+// Payments (cash / account ledger from sales & purchases)
+import PaymentList from './pages/payments/PaymentList';
+import PaymentCreate from './pages/payments/PaymentCreate';
+import PaymentEdit from './pages/payments/PaymentEdit';
+import PaymentView from './pages/payments/PaymentView';
 import AdminUsers from './pages/admin/AdminUsers';
 import UserView from './pages/admin/UserView';
 import UserEdit from './pages/admin/UserEdit';
@@ -247,6 +253,12 @@ function App() {
           <Route path="/expenses/create" element={<RequirePermission permission="expenses"><ExpenseCreate /></RequirePermission>} />
           <Route path="/expenses/:id" element={<RequirePermission permission="expenses"><ExpenseView /></RequirePermission>} />
           <Route path="/expenses/:id/edit" element={<RequirePermission permission="expenses"><ExpenseEdit /></RequirePermission>} />
+
+          {/* Payments Routes — sales/purchases + general cash in/out */}
+          <Route path="/payments" element={<RequirePermission permission="payments"><PaymentList /></RequirePermission>} />
+          <Route path="/payments/create" element={<RequirePermission permission="payments.write"><PaymentCreate /></RequirePermission>} />
+          <Route path="/payments/:id/edit" element={<RequirePermission permission="payments.write"><PaymentEdit /></RequirePermission>} />
+          <Route path="/payments/:id" element={<RequirePermission permission="payments"><PaymentView /></RequirePermission>} />
           
           <Route
             path="*"

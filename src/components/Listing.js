@@ -29,6 +29,8 @@ const Listing = ({
   totalsConfig,
   writePermission,
   deletePermission,
+  canEdit,
+  canDelete,
 }) => {
   const navigate = useNavigate();
   const { selectedShop } = useShop();
@@ -229,6 +231,8 @@ const Listing = ({
           onView={handleView}
           onEdit={!hideEdit && (!writePermission || hasPermission(writePermission)) ? handleEdit : undefined}
           onDelete={onDelete && (!deletePermission || hasPermission(deletePermission)) ? handleDelete : undefined}
+          canEdit={canEdit}
+          canDelete={canDelete}
         />
         {pagination.totalPages > 1 && (
           <Pagination

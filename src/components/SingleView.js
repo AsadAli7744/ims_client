@@ -4,7 +4,7 @@ import Navigation from './Navigation';
 import { hasPermission } from '../services/session';
 import './SingleView.css';
 
-const SingleView = ({ title, fetchData, fields, basePath, customActions, writePermission }) => {
+const SingleView = ({ title, fetchData, fields, basePath, customActions, writePermission, hideEdit = false }) => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [data, setData] = useState(null);
@@ -69,7 +69,7 @@ const SingleView = ({ title, fetchData, fields, basePath, customActions, writePe
             <button onClick={handleBack} className="single-view-button">
               Back
             </button>
-            {(!writePermission || hasPermission(writePermission)) && (
+            {!hideEdit && (!writePermission || hasPermission(writePermission)) && (
               <button onClick={handleEdit} className="single-view-button single-view-button-primary">
                 Edit
               </button>

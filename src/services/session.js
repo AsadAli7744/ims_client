@@ -74,6 +74,7 @@ const HOME_PATHS = [
   ['companies', '/companies'],
   ['purchases', '/purchases'],
   ['expenses', '/expenses'],
+  ['payments', '/payments'],
   ['shops', '/shops'],
   ['stores', '/stores'],
   ['users', '/permissions'],

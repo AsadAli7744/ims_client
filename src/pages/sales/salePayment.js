@@ -69,6 +69,10 @@ export function emptyPaymentForm() {
     newCustomerPhone: '',
     newCustomerCnic: '',
     amountPaid: '',
+    cashAmount: '',
+    accountAmount: '',
+    receiverName: '',
+    notes: '',
     promiseDate: '',
     installmentFrequency: 'none',
     installmentAmount: '',
@@ -84,7 +88,7 @@ const customerDisplayLabel = (customer) => {
   return extras.length ? `${customer.name} (${extras.join(' · ')})` : customer.name;
 };
 
-export function paymentFormFromSale(sale) {
+export function paymentFormFromSale(sale, ledgerPayment) {
   return {
     customerId: sale?.customer?.id || '',
     customerLabel: customerDisplayLabel(sale?.customer),
@@ -92,6 +96,14 @@ export function paymentFormFromSale(sale) {
     newCustomerPhone: '',
     newCustomerCnic: '',
     amountPaid: sale?.amountPaid == null ? '' : formatAmount(sale.amountPaid, ''),
+    cashAmount: ledgerPayment?.cashAmount == null || Number(ledgerPayment.cashAmount) === 0
+      ? ''
+      : ledgerPayment.cashAmount,
+    accountAmount: ledgerPayment?.accountAmount == null || Number(ledgerPayment.accountAmount) === 0
+      ? ''
+      : ledgerPayment.accountAmount,
+    receiverName: ledgerPayment?.receiverName || '',
+    notes: ledgerPayment?.notes || '',
     promiseDate: sale?.promiseDate || '',
     installmentFrequency: sale?.installmentFrequency || 'none',
     installmentAmount: sale?.installmentAmount == null ? '' : formatAmount(sale.installmentAmount, ''),
@@ -100,6 +112,11 @@ export function paymentFormFromSale(sale) {
 }
 
 export function resolvePaidAmount(form, totalAmount) {
+  const cash = money(form.cashAmount);
+  const account = money(form.accountAmount);
+  if (cash > 0 || account > 0) {
+    return cash + account;
+  }
   if (form.amountPaid === '' || form.amountPaid == null) {
     return money(totalAmount);
   }
@@ -108,12 +125,22 @@ export function resolvePaidAmount(form, totalAmount) {
 
 export function validatePaymentForm(form, totalAmount) {
   const total = money(totalAmount);
+  const cash = money(form.cashAmount);
+  const account = money(form.accountAmount);
+  if (account > 0 && !String(form.receiverName || '').trim()) {
+    return 'Receiver name is required for account payment';
+  }
   const paid = resolvePaidAmount(form, total);
   if (paid < 0) {
     return 'Amount paid cannot be negative';
   }
   if (paid > total + 0.001) {
     return 'Amount paid cannot exceed sale total';
+  }
+  if ((cash > 0 || account > 0) && form.amountPaid !== '' && form.amountPaid != null) {
+    if (Math.abs(money(form.amountPaid) - (cash + account)) > 0.01) {
+      return 'Cash + Account must equal Amount paid';
+    }
   }
   const remaining = Math.max(0, total - paid);
   if (remaining > 0.001) {
@@ -154,6 +181,18 @@ export function buildSalePaymentPayload(form, totalAmount, { allowClearCustomer 
   const total = money(totalAmount);
   const paid = resolvePaidAmount(form, total);
   payload.amountPaid = paid;
+
+  const cash = money(form.cashAmount);
+  const account = money(form.accountAmount);
+  if (cash > 0 || account > 0) {
+    payload.paymentSplit = {
+      cashAmount: cash,
+      accountAmount: account,
+      receiverName: account > 0 ? String(form.receiverName || '').trim() : undefined,
+      notes: account > 0 ? (String(form.notes || '').trim() || undefined) : undefined,
+    };
+  }
+
   if (paid + 0.001 < total) {
     if (form.promiseDate) {
       payload.promiseDate = form.promiseDate;

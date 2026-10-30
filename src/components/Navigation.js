@@ -44,6 +44,7 @@ const NavIcon = ({ name }) => {
     companies: 'M4 21V7l6-4 4 2.7V7h6v14H4zm4-3h2v-3H8zm5 0h2v-3h-2zm5 0h2v-3h-2z',
     purchases: 'M7 18a2 2 0 1 0 2 2 2 2 0 0 0-2-2zm10 0a2 2 0 1 0 2 2 2 2 0 0 0-2-2zM3 4h2l.4 2H21l-2.2 8H8.1L7 7.3 6.3 6H3zm5.3 8h9.2l1.2-4H7.6z',
     expenses: 'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-2h2zm0-4h-2V7h2z',
+    payments: 'M3 6h18v12H3zm2 2v2h4V8zm6 0v2h8V8zm-6 4v2h6v-2zm8 0v2h4v-2z',
     shops: 'M3 10 5 4h14l2 6v10H3zm3-4.5L5.2 9h13.6L16 5.5zM5 12h14v6H5z',
     stores: 'M4 7h16v3H4zm1 4h14v9H5zm3 2v5h2v-5zm6 0v5h2v-5z',
   };
@@ -136,7 +137,10 @@ const Navigation = () => {
       },
       {
         title: 'Money',
-        items: [{ path: '/expenses', label: 'Expenses', module: 'expenses', icon: 'expenses' }],
+        items: [
+          { path: '/expenses', label: 'Expenses', module: 'expenses', icon: 'expenses' },
+          { path: '/payments', label: 'Payments', module: 'payments', icon: 'payments' },
+        ],
       },
       {
         title: 'Locations',

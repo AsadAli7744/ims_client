@@ -23,9 +23,6 @@ const ItemCreate = () => {
     location: '',
     uniqueIdentifier: '',
     condition: '',
-    quantity: 1,
-    purchasePrice: '',
-    minimumSalePrice: ''
   });
   const [companies, setCompanies] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -161,9 +158,9 @@ const ItemCreate = () => {
         location: formData.location?.trim() || undefined,
         uniqueIdentifier: formData.uniqueIdentifier?.trim() || undefined,
         condition: formData.condition || undefined,
-        quantity: formData.quantity ?? 0,
-        purchasePrice: formData.purchasePrice || 0,
-        minimumSalePrice: formData.minimumSalePrice || 0
+        quantity: 0,
+        purchasePrice: 0,
+        minimumSalePrice: 0,
       };
       const pickedStoreId = showStoreSelect && formData.storeId ? parseInt(formData.storeId) : undefined;
       const pickedShopId = showShopSelect && formData.shopId ? parseInt(formData.shopId) : undefined;
@@ -300,39 +297,6 @@ const ItemCreate = () => {
           )}
         </div>
         )}
-        <div className="form-fields-row">
-          <FormField label="Quantity" htmlFor="quantity" required>
-            <Input
-              type="number"
-              name="quantity"
-              placeholder="Quantity"
-              value={formData.quantity}
-              onChange={handleChange}
-              min="1"
-            />
-          </FormField>
-          <FormField label="Purchase Price (per unit)" htmlFor="purchasePrice" required>
-            <Input
-              type="number"
-              name="purchasePrice"
-              placeholder="Purchase Price (per unit)"
-              value={formData.purchasePrice}
-              onChange={handleChange}
-              step="any"
-            />
-          </FormField>
-        </div>
-        <div className="form-fields-row">
-          <FormField label="Minimum Sale Price" htmlFor="minimumSalePrice" required>
-            <Input
-              type="number"
-              name="minimumSalePrice"
-              placeholder="Minimum Sale Price"
-              value={formData.minimumSalePrice}
-              onChange={handleChange}
-            />
-          </FormField>
-        </div>
         <div className="form-actions">
           <button type="button" onClick={() => navigate('/items')} className="form-button form-button-secondary">
             Cancel

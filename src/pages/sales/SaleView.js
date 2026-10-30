@@ -126,6 +126,9 @@ const SaleView = () => {
               Back
             </button>
             <DownloadPngButton targetRef={captureRef} filename={`sale-${sale.id || id}.png`} />
+            <button type="button" onClick={() => window.print()} className="single-view-button single-view-button-print">
+              Print
+            </button>
             {canWrite && (
               <button onClick={() => navigate(`/sales/${id}/edit`)} className="single-view-button single-view-button-primary">
                 Edit

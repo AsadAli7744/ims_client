@@ -4,10 +4,11 @@ import Navigation from '../../components/Navigation';
 import FormWrapper from '../../components/FormWrapper';
 import FormField from '../../components/FormField';
 import Input from '../../components/Input';
-import { salesApi, itemsApi } from '../../services/api';
+import { salesApi, itemsApi, paymentsApi, unwrapList } from '../../services/api';
 import SalePaymentFields from './SalePaymentFields';
+import CashAccountFields from '../../components/CashAccountFields';
 import { ItemSearchSelect } from '../../components/entitySearchSelects';
-import { buildSalePaymentPayload, emptyPaymentForm, paymentFormFromSale, validatePaymentForm } from './salePayment';
+import { buildSalePaymentPayload, emptyPaymentForm, money, paymentFormFromSale, validatePaymentForm } from './salePayment';
 import { itemNameLabel, itemOptionLabel } from '../items/itemCondition';
 import { formatAmount } from '../../utils/formatAmount';
 import '../../components/ItemInfoBox.css';
@@ -37,7 +38,14 @@ const SaleEdit = () => {
     try {
       setLoadingData(true);
       const data = await salesApi.getOne(id);
-      
+      let ledgerPayment = null;
+      try {
+        const paymentRows = unwrapList(await paymentsApi.getAll(1, 1, { saleId: id }));
+        ledgerPayment = paymentRows[0] || null;
+      } catch (e) {
+        ledgerPayment = null;
+      }
+
       if (data.saleItems && data.saleItems.length > 0) {
         const mappedItems = data.saleItems.map(saleItem => ({
           itemId: saleItem.item?.id || saleItem.itemId || '',
@@ -48,7 +56,7 @@ const SaleEdit = () => {
         }));
         setSaleItems(mappedItems);
       }
-      setPayment(paymentFormFromSale(data));
+      setPayment(paymentFormFromSale(data, ledgerPayment));
     } catch (error) {
       console.error('Error loading sale:', error);
     } finally {
@@ -291,6 +299,22 @@ const SaleEdit = () => {
             <strong>Profit</strong> {formatAmount(totalProfit)}
           </div>
         </div> */}
+
+        <CashAccountFields
+          title="Cash / Account"
+          hint="Part of this sale (customer is optional). Use cash, account, or both. Account needs a receiver name."
+          value={payment}
+          onChange={(next) => {
+            const cash = money(next.cashAmount);
+            const account = money(next.accountAmount);
+            const split = cash + account;
+            setPayment({
+              ...payment,
+              ...next,
+              amountPaid: split > 0 ? String(split) : payment.amountPaid,
+            });
+          }}
+        />
 
         <SalePaymentFields
           totalAmount={totalAmount}

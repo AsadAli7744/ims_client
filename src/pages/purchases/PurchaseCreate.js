@@ -9,6 +9,12 @@ import { ItemSearchSelect, SellerSearchSelect } from '../../components/entitySea
 import InlineCreatePanel from '../../components/InlineCreatePanel';
 import RequireShop from '../../components/RequireShop';
 import { hasPermission } from '../../services/session';
+import CashAccountFields, {
+  buildPaymentSplitPayload,
+  emptyCashAccount,
+  validateCashAccount,
+} from '../../components/CashAccountFields';
+import { PURCHASE_RAM_OPTIONS, PURCHASE_ROM_OPTIONS } from './purchaseOptions';
 
 const PurchaseCreate = () => {
   const navigate = useNavigate();
@@ -17,11 +23,15 @@ const PurchaseCreate = () => {
     purchasePrice: '',
     quantity: 1,
     purchaseDate: new Date().toISOString().split('T')[0],
+    invoicePrice: '',
+    ram: '',
+    rom: '',
     sellerId: '',
     newSellerName: '',
     newSellerPhone: '',
     newSellerCnic: '',
   });
+  const [paymentSplit, setPaymentSplit] = useState(emptyCashAccount());
   const [loading, setLoading] = useState(false);
   const canUseSellers = hasPermission('sellers');
 
@@ -52,6 +62,12 @@ const PurchaseCreate = () => {
       return;
     }
 
+    const paymentError = validateCashAccount(paymentSplit);
+    if (paymentError) {
+      alert(paymentError);
+      return;
+    }
+
     setLoading(true);
     try {
       const payload = {
@@ -59,7 +75,14 @@ const PurchaseCreate = () => {
         purchasePrice: formData.purchasePrice,
         quantity: formData.quantity || 1,
         purchaseDate: formData.purchaseDate,
+        invoicePrice: formData.invoicePrice !== '' ? Number(formData.invoicePrice) : null,
+        ram: formData.ram || null,
+        rom: formData.rom || null,
       };
+      const split = buildPaymentSplitPayload(paymentSplit);
+      if (split) {
+        payload.paymentSplit = split;
+      }
       if (formData.sellerId) {
         payload.sellerId = parseInt(formData.sellerId);
       } else if (formData.newSellerName.trim()) {
@@ -94,15 +117,15 @@ const PurchaseCreate = () => {
               onChange={handleChange}
             />
           </FormField>
-          <FormField label="Price per unit" htmlFor="purchasePrice" required>
+          <FormField label="Invoice price" htmlFor="invoicePrice">
             <Input
               type="number"
-              name="purchasePrice"
-              placeholder="Purchase Price (per unit)"
-              value={formData.purchasePrice}
+              name="invoicePrice"
+              placeholder="Optional invoice price"
+              value={formData.invoicePrice}
               onChange={handleChange}
-              step="any"
               min="0"
+              step="any"
             />
           </FormField>
         </div>
@@ -126,6 +149,43 @@ const PurchaseCreate = () => {
             />
           </FormField>
         </div>
+        <div className="form-fields-row">
+          <FormField label="Price per unit" htmlFor="purchasePrice" required>
+            <Input
+              type="number"
+              name="purchasePrice"
+              placeholder="Purchase Price (per unit)"
+              value={formData.purchasePrice}
+              onChange={handleChange}
+              step="any"
+              min="0"
+            />
+          </FormField>
+        </div>
+        <div className="form-fields-row">
+          <FormField label="RAM" htmlFor="ram">
+            <select id="ram" name="ram" value={formData.ram} onChange={handleChange}>
+              <option value="">Not set</option>
+              {PURCHASE_RAM_OPTIONS.map((entry) => (
+                <option key={entry.value} value={entry.value}>{entry.label}</option>
+              ))}
+            </select>
+          </FormField>
+          <FormField label="ROM" htmlFor="rom">
+            <select id="rom" name="rom" value={formData.rom} onChange={handleChange}>
+              <option value="">Not set</option>
+              {PURCHASE_ROM_OPTIONS.map((entry) => (
+                <option key={entry.value} value={entry.value}>{entry.label}</option>
+              ))}
+            </select>
+          </FormField>
+        </div>
+        <CashAccountFields
+          title="Cash / Account"
+          hint="Part of this purchase (seller is optional). Use cash, account, or both. Account needs a receiver name."
+          value={paymentSplit}
+          onChange={setPaymentSplit}
+        />
         {canUseSellers && (
           <div className="form-fields-row">
             <FormField label="Seller" htmlFor="sellerId">

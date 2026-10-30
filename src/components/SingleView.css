@@ -117,6 +117,15 @@
   color: white;
 }
 
+.single-view-button-print {
+  background-color: #6f42c1;
+  color: white;
+}
+
+.single-view-button-print:hover {
+  background-color: #5a32a3;
+}
+
 .single-view-button-download:hover:not(:disabled) {
   background-color: #0b5ed7;
 }

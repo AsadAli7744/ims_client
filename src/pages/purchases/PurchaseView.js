@@ -130,6 +130,9 @@ const PurchaseView = () => {
               ) : '—'}
             </Stat>
             <Stat label="Seller contact">{sellerExtras || '—'}</Stat>
+            <Stat label="Invoice price">{formatAmount(purchase.invoicePrice)}</Stat>
+            <Stat label="RAM">{purchase.ram || '—'}</Stat>
+            <Stat label="ROM">{purchase.rom || '—'}</Stat>
             <Stat label="Purchase date">
               {purchase.purchaseDate
                 ? new Date(purchase.purchaseDate).toLocaleDateString()
