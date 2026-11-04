@@ -5,6 +5,7 @@ import { paymentsApi } from '../../services/api';
 import { formatAmount } from '../../utils/formatAmount';
 import { hasPermission } from '../../services/session';
 import { paymentTypeLabel } from './paymentLabels';
+import { conditionLabel } from '../items/itemCondition';
 import '../../components/SingleView.css';
 
 const PaymentView = () => {
@@ -75,6 +76,9 @@ const PaymentView = () => {
     },
   ];
 
+  const saleItems = (payment.sale?.saleItems || []).filter((si) => !si.is_archived);
+  const purchaseItem = payment.purchase?.item;
+
   return (
     <div>
       <Navigation />
@@ -96,6 +100,7 @@ const PaymentView = () => {
             )}
           </div>
         </div>
+
         <div className="single-view-content">
           {fields.map((field) => (
             <div key={field.label} className="single-view-field">
@@ -104,6 +109,82 @@ const PaymentView = () => {
             </div>
           ))}
         </div>
+
+        {saleItems.length > 0 && (
+          <div className="single-view-content" style={{ marginTop: 20 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 12px 0' }}>Sale Items ({saleItems.length})</h2>
+            <div style={{ overflowX: 'auto', width: '100%' }}>
+              <table className="common-table" style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>IMEI / Identifier</th>
+                    <th>Condition</th>
+                    <th>Qty</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {saleItems.map((si, idx) => (
+                    <tr key={si.id || idx}>
+                      <td><strong>{si.item?.name || 'Item'}</strong></td>
+                      <td>
+                        {si.item?.uniqueIdentifier ? (
+                          <span style={{ fontFamily: 'monospace', background: '#f3f4f6', padding: '2px 6px', borderRadius: 4 }}>
+                            {si.item.uniqueIdentifier}
+                          </span>
+                        ) : '—'}
+                      </td>
+                      <td>{si.item?.condition ? conditionLabel(si.item.condition) : '—'}</td>
+                      <td>{si.quantity || 1}</td>
+                      <td>{formatAmount(si.amount)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {purchaseItem && (
+          <div className="single-view-content" style={{ marginTop: 20 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 12px 0' }}>Purchase Item</h2>
+            <div style={{ overflowX: 'auto', width: '100%' }}>
+              <table className="common-table" style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>IMEI / Identifier</th>
+                    <th>Specs</th>
+                    <th>Condition</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>{purchaseItem.name || 'Item'}</strong></td>
+                    <td>
+                      {purchaseItem.uniqueIdentifier ? (
+                        <span style={{ fontFamily: 'monospace', background: '#f3f4f6', padding: '2px 6px', borderRadius: 4 }}>
+                          {purchaseItem.uniqueIdentifier}
+                        </span>
+                      ) : '—'}
+                    </td>
+                    <td>
+                      {[payment.purchase.ram && `RAM: ${payment.purchase.ram}`, payment.purchase.rom && `ROM: ${payment.purchase.rom}`]
+                        .filter(Boolean)
+                        .join(' · ') || '—'}
+                    </td>
+                    <td>{purchaseItem.condition ? conditionLabel(purchaseItem.condition) : '—'}</td>
+                    <td>{payment.purchase.quantity || 1}</td>
+                    <td>{formatAmount(payment.purchase.purchasePrice)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
